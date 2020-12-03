@@ -3,13 +3,18 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Melonedo&#39;s blog</title>
+  <title>Hu-Moments | Melonedo&#39;s blog</title>
   <meta name="author" content="melonedo">
+  
+  <meta name="description" content="参考资料：
+
+M. K. Hu, “Visual Pattern Recognition by Moment Invariants”, IRE Trans. Info. Theory, vol. IT-8, pp.179–187, 1962
+J. Flusser: “On the Independe">
   
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  
+  <meta property="og:title" content="Hu-Moments"/>
   <meta property="og:site_name" content="Melonedo&#39;s blog"/>
 
   
@@ -45,8 +50,7 @@
 <div class="clearfix"></div>
 </header>
   <div id="content" class="inner">
-    <div id="main-col" class="alignleft"><div id="wrapper">
-  <article id="post-Hu-Moments" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article id="post-Hu-Moments" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   
   <div class="post-content">
     <header>
@@ -56,7 +60,7 @@
       
       
   
-    <h1 class="title"><a href="/2020/12/03/Hu-Moments/">Hu-Moments</a></h1>
+    <h1 class="p-name title" itemprop="headline name">Hu-Moments</h1>
   
 
     </header>
@@ -155,6 +159,29 @@ c_{pq}=\mathrm \exp(\frac{2\pi\mathrm i}{N}(p-q))\cdot c_{pq}</script><p>除非$
       
         
         
+  
+  <div class="tags">
+    <a href="/tags/读书笔记/">读书笔记</a>
+  </div>
+
+        
+  <div class="addthis addthis_toolbox addthis_default_style">
+    
+      <a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+    
+    
+      <a class="addthis_button_tweet"></a>
+    
+    
+      <a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+    
+    
+      <a class="addthis_button_pinterest_pinit" pi:pinit:layout="horizontal"></a>
+    
+    <a class="addthis_counter addthis_pill_style"></a>
+  </div>
+  <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js"></script>
+
       
       <div class="clearfix"></div>
     </footer>
@@ -162,141 +189,27 @@ c_{pq}=\mathrm \exp(\frac{2\pi\mathrm i}{N}(p-q))\cdot c_{pq}</script><p>除非$
 </article>
 
 
+<section id="comment">
+  <h1 class="title">Comments</h1>
 
-
-  <article id="post-多臂老虎机学习笔记" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time class="dt-published" datetime="2020-11-21T05:40:48.000Z"><a href="/2020/11/21/多臂老虎机学习笔记/">2020-11-21</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2020/11/21/多臂老虎机学习笔记/">多臂老虎机学习笔记</a></h1>
-  
+      <div id="fb-root"></div>
+<script>
+  (function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=123456789012345";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+</script>
 
-    </header>
-    <div class="e-content entry" itemprop="articleBody">
-      
-        <p>参考资料：</p>
-<ul>
-<li>Aleksandrs Slivkins, Introduction to Multi-Armed Bandits</li>
-<li>Rémi Munos, From Bandits to Monte-Carlo Tree Search: Optimistic Principle Applied to Optimization Planning</li>
-</ul>
-<p>没参考上的资料：</p>
-<ul>
-<li>T.L. Lai and Herbert Robbins, Asymptotically Efficient Adaptive Allocation Rules</li>
-<li>Peter Auer, Finite-time Analysis of the Multiarmed Bandit Problem</li>
-</ul>
-<h2 id="导论"><a href="#导论" class="headerlink" title="导论"></a>导论</h2><p>Multi-armed bandit问题是一个非常有趣的模型，即面对几台老虎机，该如何操作获得最大的收益？</p>
-<p>以下只解释最经典的模型，即各老虎机完全独立，每次抽取完全独立（只与选择哪一台老虎机相关），可以自由选择操作的老虎机。可以进行的扩展有很多，比如老虎机本身是马可夫过程，或者老虎机的收益分布互相存在已知的关联（线性、凸函数、Lipschitz连续等），或者抽取的过程也有随机性，某台机器可能不能抽取。更进一步的，老虎机“背后”可能有“智能”的策略，抽取方和老虎机互相对抗。</p>
-<p>首先，获取最大的收益可以简单地定义为使得整个过程的总收益的数学期望最大，但是由于不同的问题的最佳收益不同，不太适用。取而代之，通常转而使用“悔恨”（regret），即获得的实际收益的期望和可获得的最大收益的差，并最小化悔恨。</p>
-<p>多臂老虎机问题最重要的一点是抽取的次数极其有限，不足以“完美”地探索所有的老虎机的分布，因此我们需要做出探索和利用（Exploration vs Exploitation）的权衡，多加探索可以使得后面的行动更优，但探索本身是一定的浪费。</p>
-<p>在这个最简单的情景中，我们对于每次操作的收益分布一无所之，唯一可以确定的是收益只和机器相关联，且每次抽取都是从这个机器的收益分布的一个独立采样。</p>
-<h2 id="符号"><a href="#符号" class="headerlink" title="符号"></a>符号</h2><p>有$K$个老虎机（或称老虎机有$K$个手臂），一共只能操作$T$次。<br>每台老虎机$a$有收益分布$\mathcal{D}_a$，从中采样作为收益，收益应有界，这里限制$r\in[0,1]$。由于实际上对于$\mathcal{D}_a$一无所知，一般不关心具体分布的细节，只关心对应的均值$\mu$。并把最优的那个机器的均值称为$\mu^*$。<br>若一个算法在第$t$轮中，选中了第$a_t$个老虎机，则获得收益$r_t$（注意根据语境下面的置信半径区分），这台机器的收益的均值为$\mu(a_t)$，此前被操作过$n_t(a_t)$次。</p>
-<p>优化的目标是最小化悔恨$R$（的期望）：</p>
-<script type="math/tex; mode=display">
-R(T)=\mu^*\cdot T - \sum_{t=1}^{T}\mu(a_t)</script><h2 id="置信半径（confidence-radius）"><a href="#置信半径（confidence-radius）" class="headerlink" title="置信半径（confidence radius）"></a>置信半径（confidence radius）</h2><p>由于对于具体的分布一无所知，对于分布的讨论只能利用对所有形状的分布均适用的不等式来处理，通常只会用到Hoeffding不等式：</p>
-<p>若观测的分布局限于$[0,1]$，进行$n$次<strong>相互独立</strong>的测量，测得的均值为$\overline X$，实际均值（均值的期望）为$\mathbb E[\overline X]$，则</p>
-<script type="math/tex; mode=display">
-P[\overline X -\mathbb E [\overline X]\geq t]\leq e^{-2nt^2}</script><p>即观察到的均值和实际的均值的偏差通常会很小，且随着给定的偏差而指数级减少。</p>
-<p>在两本参考资料中，为了后续的证明，都设法使得等号右边的概率为常数。即固定$-2nt^2$，对于不同的$n$，选取不同的$t$，即使得置信半径随着测量不断减少：</p>
-<p>选取置信半径$r(a)=\sqrt\frac{c\log T}{N}$，则</p>
-<script type="math/tex; mode=display">
-P[|\overline \mu (a)-\mu(a)| \leq r(a)] \geq 1- \frac 2 {T^{2c}}</script><p>这里通常令$c=2$。注意这个置信半径计算前要给定操作总次数，且考虑了绝对值，因此最右边分子为2。</p>
-<h3 id="合规事件（clean-event）和越界事件（bad-event）"><a href="#合规事件（clean-event）和越界事件（bad-event）" class="headerlink" title="合规事件（clean event）和越界事件（bad event）"></a>合规事件（clean event）和越界事件（bad event）</h3><p>这是Slivkins的说法，若观察到均值和实际均值的偏差在置信半径之内，则成为合规事件，否则成为越界事件。在证明中，由于越界事件概率的确非常少，通常不需要考虑：</p>
-<script type="math/tex; mode=display">
-\mathbb E [R(T)|越界事件]\times P[越界事件] \leq 1\times T \times \frac 2 {T^4}=O(\frac 1 {T^3})</script><p>然而，合规事件的贡献至少为$O(\sqrt {KT})$，故可以忽略得越界事件，认为实际均值和测得均值相差不超过置信半径。</p>
-<h2 id="经典算法及证明"><a href="#经典算法及证明" class="headerlink" title="经典算法及证明"></a>经典算法及证明</h2><h3 id="先探索再利用"><a href="#先探索再利用" class="headerlink" title="先探索再利用"></a>先探索再利用</h3><p>最简单的方法，就是每台老虎机都试$N$次，发现老虎机$\hat a$在这几次实验中回报最高，则剩下的时间里一直操作$\hat a$。</p>
-<p>只考虑合规事件，若$\hat a$实际上不是最优的，即</p>
-<script type="math/tex; mode=display">
-\mu(\hat a) + r(\hat a) \geq \mu(\hat a) > \mu(a^*) \geq \mu(a^*) - r(a^*)</script><p>他和最优的老虎机的偏差</p>
-<script type="math/tex; mode=display">
-\mu(a^*)-\mu(\hat a) \leq r(\hat a) + r(a^*)=2\sqrt{\frac {2\log T} N}</script><p>悔恨</p>
-<script type="math/tex; mode=display">
-R(T)\leq N+2\sqrt \frac {2\log T} N \times (T-KN)</script><p>合理选取$N$，以使右侧最小，则</p>
-<script type="math/tex; mode=display">
-R(T)\leq O(T^{2/3}(\log T)^{1/3})</script><p>即$R(T)=o(T)$，即使我们选错了最好的老虎机，很大概率下，这个老虎机和正确的老虎机的差别也很小，即我们选择的老虎机还不算太差，至少比乱选好一点。</p>
-<h3 id="适应性算法"><a href="#适应性算法" class="headerlink" title="适应性算法"></a>适应性算法</h3><p>利用置信区间分析的关键在于，<strong>多次操作的老虎机收益不会太差</strong>。反过来，如果已经发现一台老虎机的收益相比其他的老虎机差太多（超过了置信区间），那么可以减少使用这台老虎机。</p>
-<p>代表性的算法是逐步淘汰法和UCB1算法。</p>
-<ul>
-<li><p>逐步淘汰法：若一共操作$t$次后，一老虎机$a$的收益的置信上界（upper confidence bound, $\overline\mu(a)+r_t(a)$）小于另一老虎机$a^\prime$的收益下界（lower confidence bound，$\overline\mu(a^\prime)-r_t(a^\prime)$），即只考虑合规事件时这两台老虎机已经有高下之分，则以后再也不操作老虎机$a$。</p>
-</li>
-<li><p>UCB1算法：第$t$次操作时，选取收益上界（upper confidence bound）最高的老虎机，和逐步淘汰类似，只不过即使一台老虎机目前收益上界不高，也不排除后来继续操作的机会。</p>
-</li>
-</ul>
-<p>要注意，Hoeffding不等式要求的独立性并不是显然满足的。在适应性算法中，每次取样间是关联的，如果前面的取样的结果太差，则后面不会再取样。不过，根据Slivkins书中的说法，虽然取样的次数与样本有关，但是样本之间仍然是互相独立的，仍然可以用Hoeffding不等式。</p>
-<p>对于逐步淘汰法，若第$t$回合选中了老虎机$a$而不是$a^*$，则之前的回合中$a$和$a^*$的操作次数最多差1，$r_t(a)$接近于$r_t(a^*)$，有：</p>
-<script type="math/tex; mode=display">
-\Delta(a)=\mu(a^*)-\mu(a)\leq 2(r_t(a)+r_t(a^*))=O(r_t(a))=O(\sqrt \frac {\log T}{n_t(a)})</script><p>对于UCB1算法，只考虑合规事件</p>
-<script type="math/tex; mode=display">
-\mu(a_t)+2r_t(a_t)\geq\overline\mu_t(a_t)+r_t(a_t)\geq\overline\mu(a^*)+r_t(a_t)\geq\mu(a^*)</script><p>也有：</p>
-<script type="math/tex; mode=display">
-\Delta(a)=\mu(a^*)-\mu(a_t)\leq 2r_t(a_t)=O(\sqrt\frac{\log T}{n_t(a)})</script><p>总的悔恨为</p>
-<script type="math/tex; mode=display">
-R(T)=\sum_{i=1}^K n_T(a_i)\Delta(a_i)=\sum_{i=1}^K O(n_T(a_i)\times\sqrt\frac{\log T}{n_T(a_i)})</script><p>利用琴生不等式，</p>
-<script type="math/tex; mode=display">
-R(T)=\sqrt{\log T}\sum_{i=1}^K O(\sqrt{n_T(a_i)})\leq O(\sqrt{KT\log T})</script><p>这里最重要的是$\Delta(a)$的表达式，即多次操作的老虎机的收益和最好的老虎机之差随着操作次数成根号反比递减，由此可以得到几乎是最优的收益下界（悔恨的上界）。</p>
-<h2 id="收益上界"><a href="#收益上界" class="headerlink" title="收益上界"></a>收益上界</h2><p>收益下界即悔恨的下界，利用Kullback-Leibler数，可以得到</p>
-<script type="math/tex; mode=display">
-R(T)\geq O(\sqrt{KT})</script><p>可见之前的收益下界已经非常好了。</p>
-
-      
-    </div>
-    <footer>
-      
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-  <article id="post-First-blog" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time class="dt-published" datetime="2020-08-07T10:06:38.000Z"><a href="/2020/08/07/First-blog/">2020-08-07</a></time>
-      
+<div class="fb-comments" data-href="https://melonedo.github.io/2020/12/03/Hu-Moments/index.html" data-num-posts="5" data-width="840" data-colorscheme="light"></div>
       
   
-    <h1 class="title"><a href="/2020/08/07/First-blog/">搭个博客</a></h1>
-  
+</section>
 
-    </header>
-    <div class="e-content entry" itemprop="articleBody">
-      
-        <p>L先生说：输入和输出互相促进。今天我终于闲到搭了这个博客。</p>
-
-      
-    </div>
-    <footer>
-      
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-
-<nav id="pagination">
-  
-  
-  <div class="clearfix"></div>
-</nav></div></div>
+</div></div>
     <aside id="sidebar" class="alignright">
   <div class="search">
   <form action="//google.com/search" method="get" accept-charset="utf-8">
