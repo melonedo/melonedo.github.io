@@ -1,0 +1,306 @@
+<!DOCTYPE HTML>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  
+  <title>拉普拉斯变换应试指南 | Melonedo&#39;s blog</title>
+  <meta name="author" content="melonedo">
+  
+  <meta name="description" content="前言复变上半学期学了解析函数相关一大堆，下半学期的内容只安排了傅立叶变换和拉普拉斯变换，其中傅立叶变换只有两填空和一证明，而拉普拉斯变换有三小计算两大计算，基本上统揽了试卷的所有计算量。
+本文梳理了崔老师复变在习题和考试中大部分的技能点，只讲应试，不讲理解。
+技能树·正反拉普拉斯变换拉普拉斯变换列出">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="拉普拉斯变换应试指南"/>
+  <meta property="og:site_name" content="Melonedo&#39;s blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Melonedo&#39;s blog" type="application/atom+xml">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Melonedo&#39;s blog</a></h1>
+  <h2><a href="/"></a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div>
+</header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article id="post-拉普拉斯变换应试指南" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time class="dt-published" datetime="2021-02-04T08:58:37.000Z"><a href="/2021/02/04/拉普拉斯变换应试指南/">2021-02-04</a></time>
+      
+      
+  
+    <h1 class="p-name title" itemprop="headline name">拉普拉斯变换应试指南</h1>
+  
+
+    </header>
+    <div class="e-content entry" itemprop="articleBody">
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>复变上半学期学了解析函数相关一大堆，下半学期的内容只安排了傅立叶变换和拉普拉斯变换，其中傅立叶变换只有两填空和一证明，而拉普拉斯变换有三小计算两大计算，基本上统揽了试卷的所有计算量。</p>
+<p>本文梳理了崔老师复变在习题和考试中大部分的技能点，只讲应试，不讲理解。</p>
+<h1 id="技能树·正反拉普拉斯变换"><a href="#技能树·正反拉普拉斯变换" class="headerlink" title="技能树·正反拉普拉斯变换"></a>技能树·正反拉普拉斯变换</h1><p>拉普拉斯变换列出来的式子有二十个左右，但是由于每个都是很细的知识点，除了基本拉普拉斯变换个别可能不考以外，其他<strong>全部都考到</strong>，只是题型的区别。</p>
+<h2 id="出生技能·基本拉普拉斯变换"><a href="#出生技能·基本拉普拉斯变换" class="headerlink" title="出生技能·基本拉普拉斯变换"></a>出生技能·基本拉普拉斯变换</h2><blockquote>
+<p>每题都涉及，不然考啥呢</p>
+</blockquote>
+<p>以下默认时域变量为$t$，s域变量为$s$。</p>
+<h3 id="多项式的拉普拉斯变换"><a href="#多项式的拉普拉斯变换" class="headerlink" title="多项式的拉普拉斯变换"></a>多项式的拉普拉斯变换</h3><p>注意转换到s域之后次数多一。</p>
+<script type="math/tex; mode=display">
+\DeclareMathOperator{\laplace}{\mathcal{L}}
+\begin{align*}
+\laplace(1)&=\frac{1}{s} \\
+\laplace(t)&=\frac{1}{s^2} \\
+\laplace(t^2)&=\frac{2}{s^3} \\
+\laplace(t^n)&=\frac{n!}{s^{n+1}}
+\end{align*}</script><h3 id="（双曲）三角函数的拉普拉斯变换"><a href="#（双曲）三角函数的拉普拉斯变换" class="headerlink" title="（双曲）三角函数的拉普拉斯变换"></a>（双曲）三角函数的拉普拉斯变换</h3><p>注意cos是sin的导数，所以上面多一个s。三角是加号，而双曲是减号，是因为$s^2+a^2=0$的两个根都是虚根，而$s^2-a^2=0$的两个根都是实根。逆变换的时候有些技巧，见<strong>进阶I·延时和频移</strong>的<strong>反向变换</strong>部分。</p>
+<script type="math/tex; mode=display">
+\DeclareMathOperator{\laplace}{\mathcal{L}}
+\begin{align*}
+\laplace[\sin(at)]&=\frac{a}{s^2+a^2} &  
+\laplace[\sinh(at)]&=\frac{a}{s^2-a^2} \\
+\laplace[\cos(at)]&=\frac{s}{s^2+a^2} &
+\laplace[\cosh(at)]&=\frac{s}{s^2-a^2}
+\end{align*}</script><h2 id="进阶I·延时和频移"><a href="#进阶I·延时和频移" class="headerlink" title="进阶I·延时和频移"></a>进阶I·延时和频移</h2><blockquote>
+<p>大计算必考，小计算好像还真没考</p>
+</blockquote>
+<p>两个实际上是对偶的，指数和平移互相变换。注意延时的时候是把$f(t)$的图像整个平移，不是$f(t)\cdot u(t-a)$，后面具体说明</p>
+<script type="math/tex; mode=display">
+\DeclareMathOperator{\laplace}{\mathcal{L}}
+\begin{align*}
+\laplace[f(t-a)\cdot u(t-a)]&=e^{-as}\laplace(f) \\
+\laplace[e^{at}\cdot f(t)]&=\laplace(f)(s-a)
+\end{align*}</script><p>其中$u$是阶跃函数。</p>
+<h3 id="正向变换"><a href="#正向变换" class="headerlink" title="正向变换"></a>正向变换</h3><p>不管是计算哪个方向的变换，先计算平移的特性，再计算指数项（$e^{at}$和$e^{-as}$）。</p>
+<p>正向时，先考虑延时，做对应的基本变换，再考虑指数项。如计算下列分段函数的拉普拉斯变换：</p>
+<script type="math/tex; mode=display">
+f(t)=
+\begin{cases}
+e^{2t}\sin 3t, 0<t<\pi \\
+0, t>\pi
+\end{cases}</script><h4 id="（1）把函数写成阶跃的形式"><a href="#（1）把函数写成阶跃的形式" class="headerlink" title="（1）把函数写成阶跃的形式"></a>（1）把函数写成阶跃的形式</h4><p>把每段写成阶跃的形式，把$(a,b)$范围内的一段写成$u(t-a)-u(t-b)$。对于0和$\infty$的两个特殊情况，拉普拉斯变换不考虑小于0的情况，$u(0)$就是1，而$u(\infty)$就是0。</p>
+<script type="math/tex; mode=display">
+\begin{align*}
+(0,b)\qquad&\sim&1-&u(t-b)\\
+(a,b)\qquad&\sim&u(t-a)-&u(t-b)\\
+(b,\infty)\qquad&\sim&u(t-a)-&0
+\end{align*}</script><p>这里$(0,\pi)$就是对应$1-u(t-\pi)$，</p>
+<script type="math/tex; mode=display">
+f(t)=e^{2t}\sin 3t \cdot(1-u(t-\pi))</script><h4 id="（2）明显写出延时的变量代换"><a href="#（2）明显写出延时的变量代换" class="headerlink" title="（2）明显写出延时的变量代换"></a>（2）明显写出延时的变量代换</h4><p>对应把时延中的各$u(t-a)$项，把f写成明显地含$t-a$的形式，这里要分别写成含$t$和$t-\pi$的形式</p>
+<script type="math/tex; mode=display">
+\begin{align*}
+f(t)&=e^{2t}\sin 3t - e^{2(t-\pi)}\cdot e^{2\pi}\cdot\sin 3(t-\pi)\cdot(-1)\cdot u(t-\pi)\\
+&=e^{2t}\sin 3t + e^{2\pi}\cdot e^{2(t-\pi)}\sin 3(t-\pi)\cdot u(t-\pi)
+\end{align*}</script><h4 id="（3）按照「基本变换→频移→延时」的顺序进行变换"><a href="#（3）按照「基本变换→频移→延时」的顺序进行变换" class="headerlink" title="（3）按照「基本变换→频移→延时」的顺序进行变换"></a>（3）按照「基本变换→频移→延时」的顺序进行变换</h4><p>基本变换，$\sin 3t$的拉普拉斯变换是$\frac{3}{s^2+9}$，</p>
+<p>另有频移$e^{2t}$，应把$s$写成$s-2$，</p>
+<script type="math/tex; mode=display">
+\mathcal L [e^{2t}\sin 3t]=\frac{3}{(s-2)^2+9}</script><p>而延时$u(t-\pi)$对应的是$e^{-\pi s}$</p>
+<script type="math/tex; mode=display">
+\mathcal L [e^{2t}\sin 3t \cdot u(t-\pi)]=\frac{3e^{-\pi s}}{(s-2)^2+9}</script><h4 id="（4）加起来"><a href="#（4）加起来" class="headerlink" title="（4）加起来"></a>（4）加起来</h4><p>别忘了前面的符号和常数项！</p>
+<script type="math/tex; mode=display">
+f(t)=\frac{3}{(s-2)^2+9}\cdot\left(1+e^{\pi(2-s)}\right)</script><h3 id="反向变换"><a href="#反向变换" class="headerlink" title="反向变换"></a>反向变换</h3><blockquote>
+<p>反向变换不需要化成分段的形式，保留阶跃函数u(t)即可</p>
+</blockquote>
+<p>例题：</p>
+<script type="math/tex; mode=display">
+F(s)=\frac{s e^{-\pi s}}{s^2+2s+5}</script><h4 id="（1）忽略延时项"><a href="#（1）忽略延时项" class="headerlink" title="（1）忽略延时项"></a>（1）忽略延时项</h4><p>s域中延时项是指数函数的形式$e^{-as}$，这里$e^{-\pi s}$就是了。这里暂时忽略，后面再补上。</p>
+<script type="math/tex; mode=display">
+F'(s)=\frac{s}{s^2+2s+5}</script><h4 id="（2）凑频移项"><a href="#（2）凑频移项" class="headerlink" title="（2）凑频移项"></a>（2）凑频移项</h4><p>分母有一次项的时候说明要凑平方，凑完了得到$s+a$，就是频移项。</p>
+<p>这里需要凑平方，$s^2+2s+5=(s+1)^2+2^2$。频移项是$s+1$，把分子凑成$s+1$和2表示的形式。</p>
+<script type="math/tex; mode=display">
+F'(s)=\frac{(s+1)+\frac 1 2 \cdot2}{(s+1)^2+2^2}</script><h4 id="（3）忽略频移项，作基本变换"><a href="#（3）忽略频移项，作基本变换" class="headerlink" title="（3）忽略频移项，作基本变换"></a>（3）忽略频移项，作基本变换</h4><p>把频移项$s+1$当作整体，</p>
+<script type="math/tex; mode=display">
+\mathcal L^{-1}\left[\frac{s'+\frac 1 2 \cdot2}{s'^2+2^2}\right]=\cos 2t+\frac 1 2 \sin 2t</script><h4 id="（4）补回频移项"><a href="#（4）补回频移项" class="headerlink" title="（4）补回频移项"></a>（4）补回频移项</h4><p>注意之前还有个延时，这里先不写$t$，记为$t’$。</p>
+<script type="math/tex; mode=display">
+\begin{align*}
+\mathcal L^{-1}\left[F'\right](t')
+&=\mathcal L^{-1}\left[\frac{(s+1)+\frac 1 2 \cdot2}{(s+1)^2+2^2}\right](t')\\
+&=e^{-t'}\mathcal L^{-1}\left[\frac{s'+\frac 1 2 \cdot2}{s'^2+2^2}\right](t')\\
+&=e^{-t'}\left[\cos 2t'+\frac 1 2 \sin 2t'\right]
+\end{align*}</script><h4 id="（5）补回延时项"><a href="#（5）补回延时项" class="headerlink" title="（5）补回延时项"></a>（5）补回延时项</h4><p>$F’$和$F$相差一个$e^{-\pi s}$，对应要把$t’$换成$t-\pi$，并加上阶跃函数$u(t-\pi)$。</p>
+<script type="math/tex; mode=display">
+\begin{align*}
+\mathcal L^{-1}\left[F\right]
+&=u(t-\pi)\mathcal L^{-1}\left[F'\right](t-\pi)\\
+&=u(t-\pi)e^{-(t-\pi)}\left[\cos 2(t-\pi)+\frac 1 2 \sin 2(t-\pi)\right]\\
+&=u(t-\pi)e^{\pi-t}\left[\cos 2t+ \frac 1 2 \sin 2t\right]
+\end{align*}</script><h2 id="进阶II·时域导数和时域卷积"><a href="#进阶II·时域导数和时域卷积" class="headerlink" title="进阶II·时域导数和时域卷积"></a>进阶II·时域导数和时域卷积</h2><blockquote>
+<p>微分方程和Volterra积分方程的左边！</p>
+</blockquote>
+<p>时域导数的公式非常简单</p>
+<script type="math/tex; mode=display">
+\begin{align*}
+\mathcal L \left[f\right]&=F\\
+\mathcal L \left[f'\right]&=sF-f(0)\\
+\mathcal L \left[f'\right]&=s^2F-sf(0)-f'(0)\\
+\end{align*}</script><p>只有F前面是正号，其他的都是负号。</p>
+<p>时域卷积的公式</p>
+<script type="math/tex; mode=display">
+\mathcal L \left[f* g\right]=F\cdot G</script><p>注意卷积的定义是从0积到无穷，那么时域积分（0到无穷）实际上就是$1*f$，对应拉普拉斯变换</p>
+<script type="math/tex; mode=display">
+\int^\infty_0 f(t)\mathrm d t=1*f=\frac 1 s \cdot F</script><h2 id="进阶III·s域导数和s域积分"><a href="#进阶III·s域导数和s域积分" class="headerlink" title="进阶III·s域导数和s域积分"></a>进阶III·s域导数和s域积分</h2><blockquote>
+<p>专门考一道小计算</p>
+</blockquote>
+<p>s域导数和时域类似，但<strong>有负号</strong></p>
+<script type="math/tex; mode=display">
+\mathcal L^{-1} \left[F'\right]=-t\cdot f(t)=-t\mathcal L^{-1} \left[F\right]</script><p>s域积分的公式不好用（崔老师的答案里也不用），不必记忆。这里没有积分常数的问题，放心用导数就好。</p>
+<p>使用时，要么F是某个基本变换的导数，要么F的导数是某个基本变换，反正方程就这一个，看着办吧（</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/读书笔记/">读书笔记</a>
+  </div>
+
+        
+  <div class="addthis addthis_toolbox addthis_default_style">
+    
+      <a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+    
+    
+      <a class="addthis_button_tweet"></a>
+    
+    
+      <a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+    
+    
+      <a class="addthis_button_pinterest_pinit" pi:pinit:layout="horizontal"></a>
+    
+    <a class="addthis_counter addthis_pill_style"></a>
+  </div>
+  <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js"></script>
+
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">Comments</h1>
+
+  
+      <div id="fb-root"></div>
+<script>
+  (function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=123456789012345";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+</script>
+
+<div class="fb-comments" data-href="https://melonedo.github.io/2021/02/04/%E6%8B%89%E6%99%AE%E6%8B%89%E6%96%AF%E5%8F%98%E6%8D%A2%E5%BA%94%E8%AF%95%E6%8C%87%E5%8D%97/index.html" data-num-posts="5" data-width="840" data-colorscheme="light"></div>
+      
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="Search">
+    <input type="hidden" name="as_sitesearch" value="melonedo.github.io">
+  </form>
+</div>
+
+
+  
+
+  
+<div class="widget tag">
+  <h3 class="title">Tags</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/读书笔记/">读书笔记</a><small>3</small></li>
+  
+    <li><a href="/tags/随想/">随想</a><small>1</small></li>
+  
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 melonedo
+  
+</div>
+<div class="clearfix"></div></footer>
+  
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+
+
+<script src="/js/gallery.js"></script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+</body>
+</html>
