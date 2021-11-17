@@ -46,6 +46,45 @@
 </header>
   <div id="content" class="inner">
     <div id="main-col" class="alignleft"><div id="wrapper">
+  <article id="post-GoogleTest模版CmakeLists" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time class="dt-published" datetime="2021-11-17T00:09:16.000Z"><a href="/2021/11/17/GoogleTest模版CmakeLists/">2021-11-17</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2021/11/17/GoogleTest模版CmakeLists/">GoogleTest模版CMakeLists</a></h1>
+  
+
+    </header>
+    <div class="e-content entry" itemprop="articleBody">
+      
+        <ul>
+<li>项目是动态库MyMatrix</li>
+<li>在windows下自动导出所有符号，使用utf-8编码</li>
+<li>使用GitHub反代fastgit.org</li>
+</ul>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># https://google.github.io/googletest/quickstart-cmake.html#create-and-run-a-binary</span></span><br><span class="line"><span class="keyword">cmake_minimum_required</span>(VERSION <span class="number">3.14</span>)</span><br><span class="line"><span class="keyword">project</span>(MyMatrix)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(MSVC)</span><br><span class="line">    <span class="keyword">add_definitions</span>(-D_CRT_SECURE_NO_WARNINGS)</span><br><span class="line">    <span class="keyword">set</span>(CMAKE_CXX_FLAGS <span class="string">&quot;$&#123;CMAKE_CXX_FLAGS&#125; /utf-8&quot;</span>)</span><br><span class="line"><span class="keyword">endif</span>()</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span>(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS <span class="keyword">true</span>)</span><br><span class="line"><span class="keyword">add_library</span>(MyMatrix SHARED MyMatrix.cpp)</span><br><span class="line"></span><br><span class="line"><span class="keyword">option</span>(BUILD_GMOCK <span class="keyword">OFF</span>)</span><br><span class="line"><span class="keyword">include</span>(FetchContent)</span><br><span class="line">FetchContent_Declare(</span><br><span class="line">  googletest</span><br><span class="line">  <span class="comment"># Specify the commit you depend on and update it regularly.</span></span><br><span class="line">  URL https://hub.fastgit.org/google/googletest/archive/refs/tags/release-<span class="number">1.11</span>.<span class="number">0</span>.zip</span><br><span class="line">)</span><br><span class="line"><span class="comment"># For Windows: Prevent overriding the parent project&#x27;s compiler/linker settings</span></span><br><span class="line"><span class="keyword">set</span>(gtest_force_shared_crt <span class="keyword">ON</span> CACHE BOOL <span class="string">&quot;&quot;</span> FORCE)</span><br><span class="line">FetchContent_MakeAvailable(googletest)</span><br><span class="line"></span><br><span class="line"><span class="keyword">add_executable</span>(tests MyMatrix-tests.cpp)</span><br><span class="line"><span class="keyword">target_link_libraries</span>(tests gtest_main)</span><br><span class="line"><span class="keyword">enable_testing</span>()</span><br><span class="line"><span class="keyword">add_test</span>(NAME tests <span class="keyword">COMMAND</span> tests)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>MyMatrix-tests.cpp内容参见<a target="_blank" rel="noopener" href="https://google.github.io/googletest/quickstart-cmake.html#create-and-run-a-binary">Quickstart: Building with CMake | GoogleTest</a>。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
   <article id="post-GitHub镜像" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   
   <div class="post-content">
@@ -627,7 +666,7 @@ R(T)\geq O(\sqrt{KT})</script><p>可见之前的收益下界已经非常好了�
   <h3 class="title">Tags</h3>
   <ul class="entry">
   
-    <li><a href="/tags/编程/">编程</a><small>1</small></li>
+    <li><a href="/tags/编程/">编程</a><small>2</small></li>
   
     <li><a href="/tags/读书笔记/">读书笔记</a><small>4</small></li>
   
@@ -670,5 +709,20 @@ R(T)\geq O(\sqrt{KT})</script><p>可见之前的收益下界已经非常好了�
 })(jQuery);
 </script>
 
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"></script>
 </body>
 </html>
