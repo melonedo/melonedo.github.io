@@ -75,7 +75,7 @@
 <p>如果不能用简单公式拟合，可以尝试用更加通用的Loess。但Loess的缺点是不能外推。</p>
 <figure class="highlight julia"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">model = loess(data[<span class="number">1</span>,:], data[<span class="number">2</span>,:], span=<span class="number">.7</span>)</span><br><span class="line">x2 = range(extrema(data[<span class="number">1</span>,:])...; step = <span class="number">0.1</span>)</span><br><span class="line">y2 = Loess.predict(model, x2)</span><br></pre></td></tr></table></figure>
 <iframe src="/plots/plot-loess.html" width="630px" height="420px" frameborder="0" loading="lazy" allowfullscreen></iframe>
-<h2 id="完整示例"><a href="#完整示例" class="headerlink" title="完整示例"></a>完整示例</h2><p><a href="/pluto/glm-and-loess.jl">glm-and-loess.jl</a></p>
+<h2 id="完整示例"><a href="#完整示例" class="headerlink" title="完整示例"></a>完整示例</h2><p><a href="/pluto/glm-and-loess.jl.html">glm-and-loess.jl</a></p>
 
       
     </div>
