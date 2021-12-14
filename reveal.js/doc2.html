@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" class="theme--documenter-dark">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="css/documenter-dark.css">
+</head>
+<body>
+    <div id="documenter">
+        <div class="docs-main">
+            <article id="documenter-page" class="content">
+                <article class="docstring"><header><a class="docstring-binding" id="Clang.LibClang.CXSaveError" href="#Clang.LibClang.CXSaveError"><code>Clang.LibClang.CXSaveError</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia hljs">CXSaveError</code></pre><p>Describes the kind of error that occurred (if any) in a call to <a href="#Clang.LibClang.clang_saveTranslationUnit-Tuple{Any, Any, Any}"><code>clang_saveTranslationUnit</code></a>(). </p><table><tbody><tr><th style="text-align: left">Enumerator</th><th style="text-align: left">Note</th></tr><tr><td style="text-align: left">CXSaveError_None</td><td style="text-align: left">Indicates that no error occurred while saving a translation unit.</td></tr><tr><td style="text-align: left">CXSaveError_Unknown</td><td style="text-align: left">Indicates that an unknown error occurred while attempting to save the file.  This error typically indicates that file I/O failed when attempting to write the file.</td></tr><tr><td style="text-align: left">CXSaveError_TranslationErrors</td><td style="text-align: left">Indicates that errors during translation prevented this attempt to save the translation unit.  Errors that prevent the translation unit from being saved can be extracted using <a href="#Clang.LibClang.clang_getNumDiagnostics-Tuple{Any}"><code>clang_getNumDiagnostics</code></a>() and <a href="#Clang.LibClang.clang_getDiagnostic-Tuple{Any, Any}"><code>clang_getDiagnostic</code></a>().</td></tr><tr><td style="text-align: left">CXSaveError_InvalidTU</td><td style="text-align: left">Indicates that the translation unit to be saved was somehow invalid (e.g., NULL).</td></tr></tbody></table></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaInterop/Clang.jl/blob/2c9230dc28a7d6d3bb33025b8c99a302f7ce5170/lib/LibClang.jl#LL1431-L1442">source</a></section></article>
+            </article>
+        </div>
+    </div>
+
+</body>
+</html>
