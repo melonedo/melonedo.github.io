@@ -3,15 +3,16 @@
 <head>
   <meta charset="utf-8">
   
-  <title>搭个博客 | melonedo&#39;s blog</title>
+  <title>BFG批量修改git历史 | melonedo&#39;s blog</title>
   <meta name="author" content="melonedo">
   
-  <meta name="description" content="L先生说：输入和输出互相促进。今天我终于闲到搭了这个博客。">
+  <meta name="description" content="git使用时经常会不慎提交一下不该提交的东西，比如把build文件夹整个提交了，或者把密码提交了。此时可以使用工具批量修改历史，再git push -f更改历史记录。
+根据GitHub文档的建议，我们可以使用BFG来清理，如1234cp repo-to-clean repo-to-clean2cd ">
   
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  <meta property="og:title" content="搭个博客"/>
+  <meta property="og:title" content="BFG批量修改git历史"/>
   <meta property="og:site_name" content="melonedo&#39;s blog"/>
 
   
@@ -47,23 +48,29 @@
 <div class="clearfix"></div>
 </header>
   <div id="content" class="inner">
-    <div id="main-col" class="alignleft"><div id="wrapper"><article id="post-First-blog" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article id="post-批量修改git历史" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   
   <div class="post-content">
     <header>
       
         <div class="icon"></div>
-        <time class="dt-published" datetime="2020-08-07T10:06:38.000Z"><a href="/2020/08/07/First-blog/">2020-08-07</a></time>
+        <time class="dt-published" datetime="2022-01-13T10:40:57.000Z"><a href="/2022/01/13/批量修改git历史/">2022-01-13</a></time>
       
       
   
-    <h1 class="p-name title" itemprop="headline name">搭个博客</h1>
+    <h1 class="p-name title" itemprop="headline name">BFG批量修改git历史</h1>
   
 
     </header>
     <div class="e-content entry" itemprop="articleBody">
       
-        <p>L先生说：输入和输出互相促进。今天我终于闲到搭了这个博客。</p>
+        <p>git使用时经常会不慎提交一下不该提交的东西，比如把build文件夹整个提交了，或者把密码提交了。此时可以使用工具批量修改历史，再<code>git push -f</code>更改历史记录。</p>
+<p>根据GitHub文档的<a target="_blank" rel="noopener" href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository">建议</a>，我们可以使用<a target="_blank" rel="noopener" href="https://rtyley.github.io/bfg-repo-cleaner/">BFG</a>来清理，如<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cp repo-to-clean repo-to-clean2</span><br><span class="line">cd repo-to-clean2</span><br><span class="line">bfg --strip-blobs-bigger-than 100M --replace-text patterns.txt --delete-files YOUR-FILE-WITH-SENSITIVE-DATA</span><br><span class="line">git push -f</span><br></pre></td></tr></table></figure></p>
+<h2 id="中文"><a href="#中文" class="headerlink" title="中文"></a>中文</h2><p>BFG并不直接支持utf，而是支持根据文件的头几个字母判断编码，需要设置变量file.encoding=UTF8提示编码。方法包括</p>
+<ul>
+<li>设置环境变量<code>JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8</code></li>
+<li>运行时使用<code>java -D&quot;file.encoding=UTF8&quot; -jar bfg ...参数...</code>直接定义变量</li>
+</ul>
 
       
     </div>
@@ -73,7 +80,7 @@
         
   
   <div class="tags">
-    <a href="/tags/随想/">随想</a>
+    <a href="/tags/编程/">编程</a>
   </div>
 
         
@@ -116,7 +123,7 @@
   }(document, 'script', 'facebook-jssdk'));
 </script>
 
-<div class="fb-comments" data-href="https://melonedo.github.io/2020/08/07/First-blog/index.html" data-num-posts="5" data-width="840" data-colorscheme="light"></div>
+<div class="fb-comments" data-href="https://melonedo.github.io/2022/01/13/%E6%89%B9%E9%87%8F%E4%BF%AE%E6%94%B9git%E5%8E%86%E5%8F%B2/index.html" data-num-posts="5" data-width="840" data-colorscheme="light"></div>
       
   
 </section>

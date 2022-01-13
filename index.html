@@ -46,6 +46,108 @@
 </header>
   <div id="content" class="inner">
     <div id="main-col" class="alignleft"><div id="wrapper">
+  <article id="post-批量修改git历史" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time class="dt-published" datetime="2022-01-13T10:40:57.000Z"><a href="/2022/01/13/批量修改git历史/">2022-01-13</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2022/01/13/批量修改git历史/">BFG批量修改git历史</a></h1>
+  
+
+    </header>
+    <div class="e-content entry" itemprop="articleBody">
+      
+        <p>git使用时经常会不慎提交一下不该提交的东西，比如把build文件夹整个提交了，或者把密码提交了。此时可以使用工具批量修改历史，再<code>git push -f</code>更改历史记录。</p>
+<p>根据GitHub文档的<a target="_blank" rel="noopener" href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository">建议</a>，我们可以使用<a target="_blank" rel="noopener" href="https://rtyley.github.io/bfg-repo-cleaner/">BFG</a>来清理，如<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cp repo-to-clean repo-to-clean2</span><br><span class="line">cd repo-to-clean2</span><br><span class="line">bfg --strip-blobs-bigger-than 100M --replace-text patterns.txt --delete-files YOUR-FILE-WITH-SENSITIVE-DATA</span><br><span class="line">git push -f</span><br></pre></td></tr></table></figure></p>
+<h2 id="中文"><a href="#中文" class="headerlink" title="中文"></a>中文</h2><p>BFG并不直接支持utf，而是支持根据文件的头几个字母判断编码，需要设置变量file.encoding=UTF8提示编码。方法包括</p>
+<ul>
+<li>设置环境变量<code>JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8</code></li>
+<li>运行时使用<code>java -D&quot;file.encoding=UTF8&quot; -jar bfg ...参数...</code>直接定义变量</li>
+</ul>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article id="post-CMake入门" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time class="dt-published" datetime="2022-01-03T03:46:34.000Z"><a href="/2022/01/03/CMake入门/">2022-01-03</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2022/01/03/CMake入门/">CMake入门</a></h1>
+  
+
+    </header>
+    <div class="e-content entry" itemprop="articleBody">
+      
+        <p><strong>CMake</strong>是一个C语言的项目管理器，用于简便地指明一个C项目生成应用/库的方法，并生成编译脚本（如Makefile）或IDE项目文件（vs解决方案sln），用于最终编译C文件。<br>相比于其他的的项目管理器，CMake的特点是：</p>
+<ul>
+<li>懂C。相比于通用的make，CMake的项目组织方法和C的特性息息相关，并且内置了众多常见的编译选项，可以避免记忆常见的命令参数。</li>
+<li>通用。一方面大量项目使用CMake管理，CMake众多C工具中的最大公约数，可以用于生成VS的项目，也可以支持VSCode，也可以在*nix环境中适应gcc或clang。</li>
+</ul>
+<h1 id="C项目"><a href="#C项目" class="headerlink" title="C项目"></a>C项目</h1><p>要理解CMake，首先要知道C项目指的是什么。C项目包括源代码（源文件<code>.c</code>/<code>.cpp</code>和头文件<code>.h</code>）以及对应的编译选项，生成若干个目标（target）。对象指的是可直接执行的应用，或可以被用于构建新目标的库。</p>
+<ul>
+<li>头文件</li>
+<li>源文件</li>
+<li>目标（二进制文件）</li>
+<li>编译选项</li>
+</ul>
+<p>应用依赖只有环境和动态库，但库还包括了依赖的库、头文件、编译选项</p>
+<h1 id="两个抽象层：命令vs函数"><a href="#两个抽象层：命令vs函数" class="headerlink" title="两个抽象层：命令vs函数"></a>两个抽象层：命令vs函数</h1><h2 id="命令和变量"><a href="#命令和变量" class="headerlink" title="命令和变量"></a>命令和变量</h2><p>由于语言的特点，C项目不只包括代码，还需要包括能够编译代码的编译命令，这些命令不只用于找到对应的代码，还需要调整一些功能的开关，如RTTI。</p>
+<p>add_custom_target 示例</p>
+<h2 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h2><p>CMAKE_CXX_FLAGS</p>
+<p>使得多个命令共享参数，但由于是全局的，可能导致冲突</p>
+<p>/utf-8</p>
+<h3 id="generator-expression"><a href="#generator-expression" class="headerlink" title="generator expression"></a>generator expression</h3><h2 id="函数和属性"><a href="#函数和属性" class="headerlink" title="函数和属性"></a>函数和属性</h2><p>target_compile_options</p>
+<p>可以灵活地设定全局或者只针对若干目标指定，可以避免副作用互相影响。</p>
+<h3 id="属性"><a href="#属性" class="headerlink" title="属性"></a>属性</h3><p>set_property get_property</p>
+<h3 id="宏"><a href="#宏" class="headerlink" title="宏"></a>宏</h3><h1 id="编译模型"><a href="#编译模型" class="headerlink" title="编译模型"></a>编译模型</h1><h2 id="自己的库"><a href="#自己的库" class="headerlink" title="自己的库"></a>自己的库</h2><p>只介绍最现代的“面向目标”的方法，add_include_directories、include_directories等不介绍。</p>
+<h3 id="add-executable-add-library"><a href="#add-executable-add-library" class="headerlink" title="add_executable/add_library"></a>add_executable/add_library</h3><p>生成目标<br>“构造函数”</p>
+<h4 id="静态-动态库"><a href="#静态-动态库" class="headerlink" title="静态/动态库"></a>静态/动态库</h4><p>不需要指定具体命令<br>INTERAFACE见下</p>
+<h3 id="target-include-directories"><a href="#target-include-directories" class="headerlink" title="target_include_directories"></a>target_include_directories</h3><p>指定头文件（目录）<br>具体需要什么头文件在c代码中include</p>
+<h3 id="target-link-libraries"><a href="#target-link-libraries" class="headerlink" title="target_link_libraries"></a>target_link_libraries</h3><p>指定库，包括库的组成部分头文件、二进制文件、编译选项</p>
+<h3 id="target-compile-options"><a href="#target-compile-options" class="headerlink" title="target_compile_options"></a>target_compile_options</h3><p>指定编译选项</p>
+<h3 id="INTERFACE-PRIVATE-PUBLIC"><a href="#INTERFACE-PRIVATE-PUBLIC" class="headerlink" title="INTERFACE/PRIVATE/PUBLIC"></a>INTERFACE/PRIVATE/PUBLIC</h3><p>他有、私有、他有及私有</p>
+<h4 id="INTERFACE库"><a href="#INTERFACE库" class="headerlink" title="INTERFACE库"></a>INTERFACE库</h4><p>不生成文件，用于指定头文件目录和编译选项。添加的文件仅用于在ide中展示</p>
+<h2 id="别人的库"><a href="#别人的库" class="headerlink" title="别人的库"></a>别人的库</h2><h3 id="find-package"><a href="#find-package" class="headerlink" title="find_package"></a>find_package</h3><p>获得上述目标</p>
+<h3 id="FetchContent"><a href="#FetchContent" class="headerlink" title="FetchContent"></a>FetchContent</h3><p>可以下东西，但是目前还没解决</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
   <article id="post-JuliaCN报告" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   
   <div class="post-content">
@@ -575,218 +677,6 @@ F'(s)=\frac{(s+1)+\frac 1 2 \cdot2}{(s+1)^2+2^2}</script><h4 id="（3）忽略�
 
 
 
-  <article id="post-Hu-Moments" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time class="dt-published" datetime="2020-12-03T13:46:36.000Z"><a href="/2020/12/03/Hu-Moments/">2020-12-03</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2020/12/03/Hu-Moments/">Hu矩观后感</a></h1>
-  
-
-    </header>
-    <div class="e-content entry" itemprop="articleBody">
-      
-        <p>参考资料：</p>
-<ul>
-<li>M. K. Hu, “Visual Pattern Recognition by Moment Invariants”, IRE Trans. Info. Theory, vol. IT-8, pp.179–187, 1962</li>
-<li>J. Flusser: “<a target="_blank" rel="noopener" href="http://library.utia.cas.cz/prace/20000033.pdf">On the Independence of Rotation Moment Invariants</a>“, Pattern Recognition, vol. 33, pp. 1405–1410, 2000.</li>
-<li>J. Flusser and T. Suk, “<a target="_blank" rel="noopener" href="http://library.utia.cas.cz/separaty/historie/flusser-rotation%20moment%20invariants%20for%20recognition%20of%20symmetric%20objects.pdf">Rotation Moment Invariants for Recognition of Symmetric Objects</a>“, IEEE Trans. Image Proc., vol. 15, pp. 3784–3790, 2006.</li>
-</ul>
-<h1 id="导论"><a href="#导论" class="headerlink" title="导论"></a>导论</h1><p>昨晚概率论刚刚上到矩（moment），正好之前opencv的时候概念又看到过非常神秘的Hu矩（Hu moments）即8个由3阶以内中心矩构成的（平移、缩放和）旋转不变量。今天无聊时维基搜了一波，发现出乎意料地有趣。</p>
-<p>Flusser的论文中，利用了复数，很轻松地便证明了矩的旋转不变性（复数nb！），并指出了Hu矩中第三组矩是冗余的，且在三阶以内有8个旋转不变量，Hu矩去掉冗余的一个后还少了一个。</p>
-<h1 id="矩"><a href="#矩" class="headerlink" title="矩"></a>矩</h1><p>概率论中也有矩，设随机变量$X$的概率密度函数为$f(x)$，则n阶原点矩为</p>
-<script type="math/tex; mode=display">
-\mu_n = \int_{-\infty}^\infty x^n f(x)\mathrm d x</script><p>在图像处理中，矩的定义也是类似的，设图像为$f(x,y)$</p>
-<script type="math/tex; mode=display">
-M_{pq}=\int_{-\infty}^\infty\int_{-\infty}^\infty (x-\bar x)^p(y-\bar y)^q f(x,y) \mathrm d x \mathrm d y</script><p>并且一般把$p+q$叫做矩的阶数。只不过通常用到的是中心矩，这样得到的矩和图像的位置无关</p>
-<script type="math/tex; mode=display">
-\mu_{pq}=\int_{-\infty}^\infty\int_{-\infty}^\infty (x-\bar x)^p(y-\bar y)^q f(x,y)\mathrm d x \mathrm d y</script><p>而且还是归一化的中心矩，这样使得矩和图像的大小也无关</p>
-<script type="math/tex; mode=display">
-\eta_{pq}=\frac {\mu_{pq}} {\mu_{00}^{(1+\frac {i+j} 2)}}</script><p>接下来的问题是，能不能找到什么方法，使得矩和旋转也无关呢？</p>
-<h1 id="复矩"><a href="#复矩" class="headerlink" title="复矩"></a>复矩</h1><p>Flusser的方法非常地有趣，他先是定义了复矩（complex moment）</p>
-<script type="math/tex; mode=display">
-c_{pq}=\int_{-\infty}^\infty\int_{-\infty}^\infty (x+\mathrm iy)^p(x-\mathrm iy)^qf(x,y)\mathrm dx \mathrm dy</script><p>其中$\mathrm i$为虚数单位。复矩显然是普通的矩的多项式，利用二项式定理可以计算，不多解释。</p>
-<p>如果令$z=x+\mathrm iy$，且$g(z)=f(x,y)$，则可以改写为</p>
-<script type="math/tex; mode=display">
-c_{pq}=\int_{-\infty}^\infty\int_{-\infty}^\infty z^p\bar z^q g(z)\mathrm dS</script><p>显然可以看出，p和q交换后结果为原来的共轭，即$c_{pq}=\overline {c_{qp}}$。如果$p=q$，则结果为实数，否则结果通常应该是复数，为了获得实数的结果，可以单独取实部和虚部。</p>
-<h2 id="旋转"><a href="#旋转" class="headerlink" title="旋转"></a>旋转</h2><p>在复数的情况下，旋转的定义非常简单，$z$绕原点逆时针旋转$\theta$角的结果是</p>
-<script type="math/tex; mode=display">
-z^\prime = \mathrm e^{\mathrm i\theta} z</script><p>把$g(z)$旋转$\theta$角，则新的复矩</p>
-<script type="math/tex; mode=display">
-\begin{align*}
-c^\prime_{pq}
-&=\int_{-\infty}^\infty\int_{-\infty}^\infty z^p \bar z^q g(\mathrm e^{\mathrm i\theta}z) \mathrm dS \\
-&=\mathrm e^{\mathrm i(q-p)\theta}c_{pq}
-\end{align*}</script><p>显然，对于若干个复矩的乘积，只要$p-q$一项加起来是0，则得到的乘积就是旋转不变量。</p>
-<p>三阶及以下的旋转不变量的一组基（以乘法可以组成别的不变量）包括：</p>
-<script type="math/tex; mode=display">
-\begin{align*}
-\psi_1&=c_{11}\\
-\psi_2&=c_{21}c_{12}\\
-\psi_3+\mathrm i\psi_4&=c_{20}c_{12}^2\\
-\psi_5+\mathrm i\psi_6&=c_{30}c_{12}^3
-\end{align*}</script><p>其中后两行的结果通常为复数，前两行的结果保证为实数。$c_{12}$也可以是$c_{01}$，只要$q-p=1$即可。</p>
-<p>一阶时$c_{01}=0$，没有意义。</p>
-<h2 id="完备性"><a href="#完备性" class="headerlink" title="完备性"></a>完备性</h2><p>当$c_{12}c_{21}\neq0$时，可以证明别的不变量可以由他们组成，如</p>
-<script type="math/tex; mode=display">
-\begin{align*}
-c_{20}c_{02}
-&=\frac{c_{12}^2c_{21}^2c_{20}c_{02}}{c_{21}^2c_{12}^2}\\
-&=\frac{|c_{20}c_{12}|^2}{(c_{21}c_{12})^2}\\
-&=\frac{\psi_3^2+\psi_4^2}{\psi_2^2}
-\end{align*}</script><p>同样的，</p>
-<script type="math/tex; mode=display">
-c_{30}c_{03}=
-\frac{c_{12}^3c_{21}^3c_{03}c_{30}}{c_{12}^3c_{21}^3}=
-\frac{\psi_5^2+\psi_6^2}{\psi_2^3}</script><h2 id="Hu矩"><a href="#Hu矩" class="headerlink" title="Hu矩"></a>Hu矩</h2><p>至此，可以发现，Hu的那组不变量其实并不是互相独立的。</p>
-<script type="math/tex; mode=display">
-\begin{align*}
-I_1&=\psi_1\\
-I_2&=\frac{\psi_3^2+\psi_4^2}{\psi_2^2}\\
-I_3&=\frac{\psi_5^2+\psi_6^2}{\psi_2^3}\\
-I_4&=\psi_2\\
-I_5&=\psi_5\\
-I_6&=\psi_3\\
-I_7&=\psi_6
-\end{align*}</script><p>但是根据下面关于旋转对称性的讨论，$I_2$和$I_3$在图像具有2重或3重旋转对称性时仍为非0值，并不是完全地没有意义。</p>
-<p>Flusser的论文中说$c_{20}c_{12}^2$和$c_{30}^2c_{02}^3$是独立于$\{I_k|k=1\dots7\}$ 的，但是由上可以看出</p>
-<script type="math/tex; mode=display">
-\begin{align*}
-\mathrm{Re}(c_{20}c_{12}^2)&=\psi_3\\
-\mathrm{Im}(c_{20}c_{12}^2)&=\psi_4=\sqrt{I_2I_4^2-I_6^2}\\
-c_{30}^2c_{02}^3&=\frac{(c_{30}c_{12}^3)^2\overline{(c_{20}c_{12}^2)}^3}{(c_{21}c_{12})^6}\\
-\end{align*}</script><p>只不过涉及开方运算，比较复杂罢了。</p>
-<h2 id="镜像"><a href="#镜像" class="headerlink" title="镜像"></a>镜像</h2><p>那么将图像镜像后，获得的这些旋转不变量是否受影响呢？在复数中讨论这个问题也惊人地简单。</p>
-<script type="math/tex; mode=display">
-\begin{align*}
-c^*_{pq}
-&=\int_{-\infty}^\infty\int_{-\infty}^\infty z^p \bar z^q \bar g(z) \mathrm dS \\
-&=\overline{\int_{-\infty}^\infty\int_{-\infty}^\infty \bar z^p z^q g(z) \mathrm dS} \\
-&=\overline {c_{pq}}\\
-&=c_{qp}
-\end{align*}</script><p>也就是说，这些不变量中，实部在镜像变换中不受影响，而虚部在镜像变换中变为相反数。</p>
-<h2 id="旋转对称性"><a href="#旋转对称性" class="headerlink" title="旋转对称性"></a>旋转对称性</h2><p>Flusser的另一篇论文里考虑了旋转对称性，这里复数的好处更是凸显。若$f(x,y)$具有N次旋转对称性，即旋转$2\pi/N$角度后与原图形重合，则此时非常多的旋转不变量都是0。</p>
-<p>即若</p>
-<script type="math/tex; mode=display">
-g(z)=\mathrm e^{2\pi\mathrm i/N}g(z)</script><p>则</p>
-<script type="math/tex; mode=display">
-c_{pq}=\mathrm \exp(\frac{2\pi\mathrm i}{N}(p-q))\cdot c_{pq}</script><p>除非$p-q$不是$N$的倍数，$c_{pq}$总是为0。当要处理的图像具有旋转对称性时，由于之前选取基的时候总是有一项是$p-q=1$（这是作者构造这组基的技巧所在），则这组基中大部分的不变量在没有误差的情况下都应该是0！</p>
-<p>这说明，如果想要利用矩的不变量来进行分析，一定要注意所选取图像的对称性，若选取的基和Flusser前面选的$\{\psi_k|k=1\dots6)\}$，那么对于任何具有旋转对称性的图像，所得到的结果除了$\psi_1$全是0，实在是非常辣鸡。相比之下，Hu的那组还有很多量非0，仍有判断价值。</p>
-
-      
-    </div>
-    <footer>
-      
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-  <article id="post-多臂老虎机学习笔记" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time class="dt-published" datetime="2020-11-21T05:40:48.000Z"><a href="/2020/11/21/多臂老虎机学习笔记/">2020-11-21</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2020/11/21/多臂老虎机学习笔记/">多臂老虎机学习笔记</a></h1>
-  
-
-    </header>
-    <div class="e-content entry" itemprop="articleBody">
-      
-        <p>参考资料：</p>
-<ul>
-<li>Aleksandrs Slivkins, Introduction to Multi-Armed Bandits</li>
-<li>Rémi Munos, From Bandits to Monte-Carlo Tree Search: Optimistic Principle Applied to Optimization Planning</li>
-</ul>
-<p>没参考上的资料：</p>
-<ul>
-<li>T.L. Lai and Herbert Robbins, Asymptotically Efficient Adaptive Allocation Rules</li>
-<li>Peter Auer, Finite-time Analysis of the Multiarmed Bandit Problem</li>
-</ul>
-<h2 id="导论"><a href="#导论" class="headerlink" title="导论"></a>导论</h2><p>Multi-armed bandit问题是一个非常有趣的模型，即面对几台老虎机，该如何操作获得最大的收益？</p>
-<p>以下只解释最经典的模型，即各老虎机完全独立，每次抽取完全独立（只与选择哪一台老虎机相关），可以自由选择操作的老虎机。可以进行的扩展有很多，比如老虎机本身是马可夫过程，或者老虎机的收益分布互相存在已知的关联（线性、凸函数、Lipschitz连续等），或者抽取的过程也有随机性，某台机器可能不能抽取。更进一步的，老虎机“背后”可能有“智能”的策略，抽取方和老虎机互相对抗。</p>
-<p>首先，获取最大的收益可以简单地定义为使得整个过程的总收益的数学期望最大，但是由于不同的问题的最佳收益不同，不太适用。取而代之，通常转而使用“悔恨”（regret），即获得的实际收益的期望和可获得的最大收益的差，并最小化悔恨。</p>
-<p>多臂老虎机问题最重要的一点是抽取的次数极其有限，不足以“完美”地探索所有的老虎机的分布，因此我们需要做出探索和利用（Exploration vs Exploitation）的权衡，多加探索可以使得后面的行动更优，但探索本身是一定的浪费。</p>
-<p>在这个最简单的情景中，我们对于每次操作的收益分布一无所之，唯一可以确定的是收益只和机器相关联，且每次抽取都是从这个机器的收益分布的一个独立采样。</p>
-<h2 id="符号"><a href="#符号" class="headerlink" title="符号"></a>符号</h2><p>有$K$个老虎机（或称老虎机有$K$个手臂），一共只能操作$T$次。<br>每台老虎机$a$有收益分布$\mathcal{D}_a$，从中采样作为收益，收益应有界，这里限制$r\in[0,1]$。由于实际上对于$\mathcal{D}_a$一无所知，一般不关心具体分布的细节，只关心对应的均值$\mu$。并把最优的那个机器的均值称为$\mu^*$。<br>若一个算法在第$t$轮中，选中了第$a_t$个老虎机，则获得收益$r_t$（注意根据语境下面的置信半径区分），这台机器的收益的均值为$\mu(a_t)$，此前被操作过$n_t(a_t)$次。</p>
-<p>优化的目标是最小化悔恨$R$（的期望）：</p>
-<script type="math/tex; mode=display">
-R(T)=\mu^*\cdot T - \sum_{t=1}^{T}\mu(a_t)</script><h2 id="置信半径（confidence-radius）"><a href="#置信半径（confidence-radius）" class="headerlink" title="置信半径（confidence radius）"></a>置信半径（confidence radius）</h2><p>由于对于具体的分布一无所知，对于分布的讨论只能利用对所有形状的分布均适用的不等式来处理，通常只会用到Hoeffding不等式：</p>
-<p>若观测的分布局限于$[0,1]$，进行$n$次<strong>相互独立</strong>的测量，测得的均值为$\overline X$，实际均值（均值的期望）为$\mathbb E[\overline X]$，则</p>
-<script type="math/tex; mode=display">
-P[\overline X -\mathbb E [\overline X]\geq t]\leq e^{-2nt^2}</script><p>即观察到的均值和实际的均值的偏差通常会很小，且随着给定的偏差而指数级减少。</p>
-<p>在两本参考资料中，为了后续的证明，都设法使得等号右边的概率为常数。即固定$-2nt^2$，对于不同的$n$，选取不同的$t$，即使得置信半径随着测量不断减少：</p>
-<p>选取置信半径$r(a)=\sqrt\frac{c\log T}{N}$，则</p>
-<script type="math/tex; mode=display">
-P[|\overline \mu (a)-\mu(a)| \leq r(a)] \geq 1- \frac 2 {T^{2c}}</script><p>这里通常令$c=2$。注意这个置信半径计算前要给定操作总次数，且考虑了绝对值，因此最右边分子为2。</p>
-<h3 id="合规事件（clean-event）和越界事件（bad-event）"><a href="#合规事件（clean-event）和越界事件（bad-event）" class="headerlink" title="合规事件（clean event）和越界事件（bad event）"></a>合规事件（clean event）和越界事件（bad event）</h3><p>这是Slivkins的说法，若观察到均值和实际均值的偏差在置信半径之内，则成为合规事件，否则成为越界事件。在证明中，由于越界事件概率的确非常少，通常不需要考虑：</p>
-<script type="math/tex; mode=display">
-\mathbb E [R(T)|越界事件]\times P[越界事件] \leq 1\times T \times \frac 2 {T^4}=O(\frac 1 {T^3})</script><p>然而，合规事件的贡献至少为$O(\sqrt {KT})$，故可以忽略得越界事件，认为实际均值和测得均值相差不超过置信半径。</p>
-<h2 id="经典算法及证明"><a href="#经典算法及证明" class="headerlink" title="经典算法及证明"></a>经典算法及证明</h2><h3 id="先探索再利用"><a href="#先探索再利用" class="headerlink" title="先探索再利用"></a>先探索再利用</h3><p>最简单的方法，就是每台老虎机都试$N$次，发现老虎机$\hat a$在这几次实验中回报最高，则剩下的时间里一直操作$\hat a$。</p>
-<p>只考虑合规事件，若$\hat a$实际上不是最优的，即</p>
-<script type="math/tex; mode=display">
-\mu(\hat a) + r(\hat a) \geq \mu(\hat a) > \mu(a^*) \geq \mu(a^*) - r(a^*)</script><p>他和最优的老虎机的偏差</p>
-<script type="math/tex; mode=display">
-\mu(a^*)-\mu(\hat a) \leq r(\hat a) + r(a^*)=2\sqrt{\frac {2\log T} N}</script><p>悔恨</p>
-<script type="math/tex; mode=display">
-R(T)\leq N+2\sqrt \frac {2\log T} N \times (T-KN)</script><p>合理选取$N$，以使右侧最小，则</p>
-<script type="math/tex; mode=display">
-R(T)\leq O(T^{2/3}(\log T)^{1/3})</script><p>即$R(T)=o(T)$，即使我们选错了最好的老虎机，很大概率下，这个老虎机和正确的老虎机的差别也很小，即我们选择的老虎机还不算太差，至少比乱选好一点。</p>
-<h3 id="适应性算法"><a href="#适应性算法" class="headerlink" title="适应性算法"></a>适应性算法</h3><p>利用置信区间分析的关键在于，<strong>多次操作的老虎机收益不会太差</strong>。反过来，如果已经发现一台老虎机的收益相比其他的老虎机差太多（超过了置信区间），那么可以减少使用这台老虎机。</p>
-<p>代表性的算法是逐步淘汰法和UCB1算法。</p>
-<ul>
-<li><p>逐步淘汰法：若一共操作$t$次后，一老虎机$a$的收益的置信上界（upper confidence bound, $\overline\mu(a)+r_t(a)$）小于另一老虎机$a^\prime$的收益下界（lower confidence bound，$\overline\mu(a^\prime)-r_t(a^\prime)$），即只考虑合规事件时这两台老虎机已经有高下之分，则以后再也不操作老虎机$a$。</p>
-</li>
-<li><p>UCB1算法：第$t$次操作时，选取收益上界（upper confidence bound）最高的老虎机，和逐步淘汰类似，只不过即使一台老虎机目前收益上界不高，也不排除后来继续操作的机会。</p>
-</li>
-</ul>
-<p>要注意，Hoeffding不等式要求的独立性并不是显然满足的。在适应性算法中，每次取样间是关联的，如果前面的取样的结果太差，则后面不会再取样。不过，根据Slivkins书中的说法，虽然取样的次数与样本有关，但是样本之间仍然是互相独立的，仍然可以用Hoeffding不等式。</p>
-<p>对于逐步淘汰法，若第$t$回合选中了老虎机$a$而不是$a^*$，则之前的回合中$a$和$a^*$的操作次数最多差1，$r_t(a)$接近于$r_t(a^*)$，有：</p>
-<script type="math/tex; mode=display">
-\Delta(a)=\mu(a^*)-\mu(a)\leq 2(r_t(a)+r_t(a^*))=O(r_t(a))=O(\sqrt \frac {\log T}{n_t(a)})</script><p>对于UCB1算法，只考虑合规事件</p>
-<script type="math/tex; mode=display">
-\mu(a_t)+2r_t(a_t)\geq\overline\mu_t(a_t)+r_t(a_t)\geq\overline\mu(a^*)+r_t(a_t)\geq\mu(a^*)</script><p>也有：</p>
-<script type="math/tex; mode=display">
-\Delta(a)=\mu(a^*)-\mu(a_t)\leq 2r_t(a_t)=O(\sqrt\frac{\log T}{n_t(a)})</script><p>总的悔恨为</p>
-<script type="math/tex; mode=display">
-R(T)=\sum_{i=1}^K n_T(a_i)\Delta(a_i)=\sum_{i=1}^K O(n_T(a_i)\times\sqrt\frac{\log T}{n_T(a_i)})</script><p>利用琴生不等式，</p>
-<script type="math/tex; mode=display">
-R(T)=\sqrt{\log T}\sum_{i=1}^K O(\sqrt{n_T(a_i)})\leq O(\sqrt{KT\log T})</script><p>这里最重要的是$\Delta(a)$的表达式，即多次操作的老虎机的收益和最好的老虎机之差随着操作次数成根号反比递减，由此可以得到几乎是最优的收益下界（悔恨的上界）。</p>
-<h2 id="收益上界"><a href="#收益上界" class="headerlink" title="收益上界"></a>收益上界</h2><p>收益下界即悔恨的下界，利用Kullback-Leibler数，可以得到</p>
-<script type="math/tex; mode=display">
-R(T)\geq O(\sqrt{KT})</script><p>可见之前的收益下界已经非常好了。</p>
-
-      
-    </div>
-    <footer>
-      
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -811,9 +701,11 @@ R(T)\geq O(\sqrt{KT})</script><p>可见之前的收益下界已经非常好了�
   <h3 class="title">Tags</h3>
   <ul class="entry">
   
+    <li><a href="/tags/CMake/">CMake</a><small>3</small></li>
+  
     <li><a href="/tags/julia/">julia</a><small>2</small></li>
   
-    <li><a href="/tags/编程/">编程</a><small>5</small></li>
+    <li><a href="/tags/编程/">编程</a><small>7</small></li>
   
     <li><a href="/tags/读书笔记/">读书笔记</a><small>4</small></li>
   
