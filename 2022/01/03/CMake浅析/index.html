@@ -1,0 +1,260 @@
+<!DOCTYPE HTML>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  
+  <title>C、Make、CMake | melonedo&#39;s blog</title>
+  <meta name="author" content="melonedo">
+  
+  <meta name="description" content="CMake是一个C语言的项目管理器，用于简便地指明一个C项目构建（build）应用/库的方法，并生成编译脚本（如Makefile）或IDE项目文件（vs解决方案sln），用于最终编译C文件。相比于其他的的项目管理器，CMake的优点是：
+
+懂C。相比于通用的make，CMake的项目组织方法和C的特">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="C、Make、CMake"/>
+  <meta property="og:site_name" content="melonedo&#39;s blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="melonedo&#39;s blog" type="application/atom+xml">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">melonedo&#39;s blog</a></h1>
+  <h2><a href="/">倘若星河昭见，能否有我在列</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div>
+</header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article id="post-CMake浅析" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time class="dt-published" datetime="2022-01-03T03:46:34.000Z"><a href="/2022/01/03/CMake浅析/">2022-01-03</a></time>
+      
+      
+  
+    <h1 class="p-name title" itemprop="headline name">C、Make、CMake</h1>
+  
+
+    </header>
+    <div class="e-content entry" itemprop="articleBody">
+      
+        <p><strong>CMake</strong>是一个C语言的项目管理器，用于简便地指明一个C项目构建（build）应用/库的方法，并生成编译脚本（如Makefile）或IDE项目文件（vs解决方案sln），用于最终编译C文件。<br>相比于其他的的项目管理器，CMake的优点是：</p>
+<ul>
+<li>懂C。相比于通用的make，CMake的项目组织方法和C的特性息息相关，并且内置了众多常见的编译选项，可以避免记忆常见的命令参数在不同环境下的组合。</li>
+<li>通用。一方面大量项目使用CMake管理，CMake众多C工具中的最大公约数，可以用于生成VS的项目，也可以支持VSCode，也可以在*nix环境中适应gcc或clang。同时新的工具如ninja也都会适配CMake生成器。</li>
+</ul>
+<h1 id="C项目"><a href="#C项目" class="headerlink" title="C项目"></a>C项目</h1><p>要理解CMake，首先要知道C项目指的是什么。C项目包括源代码（源文件<code>.c</code>/<code>.cpp</code>和头文件<code>.h</code>）以及对应的编译选项，生成若干个目标（target）。目标指的是可直接执行的应用（executable），或可以被用于构建新目标的库（library）。</p>
+<ul>
+<li>头文件：即<code>.h</code>和<code>.hpp</code>，是代码中不编译而直接共享的部分，包含源文件的接口，以及不编译为机器码的内联函数等。</li>
+<li>源文件：即<code>.c</code>和<code>.cpp</code>，包含可以被编译为机器码的各种函数，在编译后只作为参考，通常不共享。</li>
+<li>目标（二进制文件）：由源文件编译出的机器码，可以直接执行，也可以连接到其他的目标中。</li>
+<li>编译选项：编译过程中各种各样的编译要求，有时只对当前的库的编译产生影响，有时存在以来，比如如果外部库中不启用RTTI，那么使用的库也不能使用RTTI，这是用编译选项控制的。</li>
+</ul>
+<p>如果只要把代码编译成一个应用，那么最终分发的通常仅仅是一个可执行文件，如果有特殊的动态库的以来，还需要保证用户拥有正确的动态库。但如果要把代码编译成一个库，则需要分发的内容不只包括运行时需要的动态库，还包括了这个库的头文件、库文件和需要的编译选项，这是C库分发的比较困难的地方，也是CMake建立抽象层的主要根据。</p>
+<h1 id="直接输入命令"><a href="#直接输入命令" class="headerlink" title="直接输入命令"></a>直接输入命令</h1><p>下面我们以一个简单的项目为例，分别说明编译C代码的指令、用Make生成的方法、以及用CMake生成的方法。</p>
+<p>这个项目需要生成一个动态库libhello，其中函数<code>hello()</code>会在标准输出流打印”Hello”，然后编写一个C应用调用这个动态库。代码如下：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// inc/hello.h</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">hello</span><span class="params">(<span class="keyword">void</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// src/hello.c</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">hello</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123; <span class="built_in">puts</span>(<span class="string">&quot;Hello&quot;</span>); &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// main.c</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;hello.h&quot;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123; hello(); &#125;</span><br></pre></td></tr></table></figure></p>
+<p>在*nix环境中，我们可以使用gcc生成并调用动态库：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mkdir -p build</span><br><span class="line">gcc -c -o build/hello.o -fpic -I inc src/hello.c</span><br><span class="line">gcc -shared -o build/libhello.so build/hello.o</span><br><span class="line">gcc -o build/main -I inc main.c -L build -l hello</span><br></pre></td></tr></table></figure><br>在Windows中同样可以调用MSVC编译，但指令不尽相同。</p>
+<h1 id="Make"><a href="#Make" class="headerlink" title="Make"></a>Make</h1><p>直接用命令编译的局限性很明显：更改编译指令必须找到对应的命令然后逐个更改，这样的代码重复没有必要。为此，我们可以把上述的各种选项都用变量的形式书写。同时，直接用命令时没有额外的软件分析文件间的依赖，在文件改动后要么重新编译整个项目，要么 手动找出需要重新编译的所有依赖，非常麻烦。这个问题的通常解决方法是使用Make脚本Makefile。</p>
+<p><code>make</code>系统是一个以文件为主体的编译管理系统，可以根据指定的规则，在依赖改变时，逐步地生成中间产品和最终产品。比如上面的例子可以使用Makefile来处理：<br><figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">CC ::= gcc</span><br><span class="line">CPPFLAGS += -I inc</span><br><span class="line">BUILD_DIR ?= build</span><br><span class="line">LDFLAGS += -L <span class="variable">$(BUILD_DIR)</span></span><br><span class="line">LDLIBS += -l hello</span><br><span class="line"></span><br><span class="line"><span class="section">all: <span class="variable">$(BUILD_DIR)</span>/main</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$(BUILD_DIR)</span>/main: <span class="variable">$(BUILD_DIR)</span>/main.o <span class="variable">$(BUILD_DIR)</span>/libhello.so</span><br><span class="line"></span><br><span class="line"><span class="variable">$(BUILD_DIR)</span>/main.o: main.c inc/hello.h</span><br><span class="line">    <span class="variable">$(CC)</span> -c <span class="variable">$(CPPFLAGS)</span> <span class="variable">$(CFLAGS)</span> -o <span class="variable">$@</span> <span class="variable">$&lt;</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$(BUILD_DIR)</span>/hello.o: src/hello.c inc/hello.h</span><br><span class="line">    <span class="variable">$(CC)</span> -c <span class="variable">$(CPPFLAGS)</span> <span class="variable">$(CFLAGS)</span> -fpic -o <span class="variable">$@</span> <span class="variable">$&lt;</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$(BUILD_DIR)</span>/libhello.so: <span class="variable">$(BUILD_DIR)</span>/hello.o</span><br><span class="line">    <span class="variable">$(CC)</span> -shared -o <span class="variable">$@</span> <span class="variable">$^</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="命令和变量"><a href="#命令和变量" class="headerlink" title="命令和变量"></a>命令和变量</h2><p>CMake同样提供直接操作命令和变量的方法。这不只可以用于编译C，还可以用于生成代码，比如调用脚本生成一个C文件。</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">add_custom_command</span>(OUTPUT main</span><br><span class="line">                   <span class="keyword">COMMAND</span> gcc main.c -o main</span><br><span class="line">                   DEPENDS main.c)</span><br><span class="line"></span><br><span class="line"><span class="keyword">add_custom_command</span>(OUTPUT main.c</span><br><span class="line">                   <span class="keyword">COMMAND</span> python generate-main.py</span><br><span class="line">                   DEPENDS generate-main.py)</span><br><span class="line"></span><br><span class="line"><span class="keyword">add_custom_target</span>(greet</span><br><span class="line">                  <span class="keyword">COMMAND</span> ./main</span><br><span class="line">                  DEPENDS main.c)</span><br></pre></td></tr></table></figure>
+<p>这样可以声明两个互相有依赖关系的命令，调用后者会生成main.c而调用前者会生成main。CMake（生成的项目）会根据声明的或自动判断的依赖来按顺序调用。</p>
+<p>除了<code>add_custom_command</code>，CMake还有一个类似的函数<code>add_custom_target</code>，用于指定一个命令，而不自动利用生成的文件判断依赖关系，因此可以指定简单的命令向控制台输出或运行程序。</p>
+<h2 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h2><p>同样地，CMake也提供利用变量来指定参数的方法，可以通过配置环境变量<code>CFLAGS</code>或者CMake变量<code>CMAKE_C_FLAGS</code>来达到和上面例子一样的效果。CMake默认生成的编译指令其实是一个类似于模板，具体内容会填入这些选项设定的参数。</p>
+<p>CMake中定义一个变量有多种方法：</p>
+<ul>
+<li>调用时<code>cmake</code>时添加选项<code>-DFLAG=value</code>，如<code>cmake -D CMAKE_CXX_FLAGS=-Ofast</code></li>
+<li>在CMakeLists.txt中用命令<code>set</code>或<code>option</code>指定。<code>set</code>更加通用，而<code>option</code>专门用于开关，还支持依赖。</li>
+</ul>
+<p>使用变量时语法为<code>$&#123;变量名&#125;</code>。要注意的是有些语句（如<code>if</code>）诞生于变量之前，可以直接用<code>变量名</code>的形式引用变量。</p>
+<h2 id="函数和属性"><a href="#函数和属性" class="headerlink" title="函数和属性"></a>函数和属性</h2><p>仅仅使用裸的命令和变量指定编译方法显然不利于复用，CMake提供的方法是使用一系列的函数来复用代码。</p>
+<p>以下是一个函数的定义和调用。</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义</span></span><br><span class="line"><span class="keyword">function</span>(create_executable name)</span><br><span class="line">  <span class="keyword">add_custom_command</span>(OUTPUT hello.o</span><br><span class="line">                     <span class="keyword">COMMAND</span> <span class="variable">$&#123;C_COMPILER&#125;</span> -c hello.c</span><br><span class="line">                     DEPENDS hello.c)</span><br><span class="line">  <span class="keyword">add_custom_command</span>(OUTPUT main.o</span><br><span class="line">                     <span class="keyword">COMMAND</span> <span class="variable">$&#123;C_COMPILER&#125;</span> -c main.c</span><br><span class="line">                     DEPENDS main.c)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">add_custom_target</span>(<span class="variable">$&#123;name&#125;</span></span><br><span class="line">                    <span class="keyword">COMMAND</span> <span class="variable">$&#123;C_COMPILER&#125;</span> main.o hello.o -o hello</span><br><span class="line">                    DEPENDS main.o hello.o)</span><br><span class="line"><span class="keyword">endfunction</span>()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 调用</span></span><br><span class="line">create_executable(hello-<span class="keyword">target</span>)</span><br></pre></td></tr></table></figure>
+<p>上面是一个简单的例子，可以看到通常CMake中函数的用途非常局限，仅仅是获取一些变量的值，并利用这些函数的值来调用其他的函数。</p>
+<h3 id="宏"><a href="#宏" class="headerlink" title="宏"></a>宏</h3><p>可以看到上述的函数的例子中，CMake的函数并没有返回值，而实际的使用中我们会希望获取函数计算的结果，一个简单的方法是利用宏。宏和函数不同，函数体中可以定义新的变量，这些变量的作用域可以不超出函数体；而宏中定义的变量会在调用宏的作用域可见，如果知道这些变量的名字，实际上可以用来返回结果。</p>
+<p>下面的例子定义了宏<code>compile</code>，这个宏生成编译<code>source_file</code>的命令，并定义一个变量<code>output_file</code>，用于这个文件编译结果的路径。</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义</span></span><br><span class="line"><span class="keyword">macro</span>(compile source_file)</span><br><span class="line">  <span class="keyword">get_filename_component</span>(output_file <span class="variable">$&#123;source_file&#125;</span> NAME_WE)</span><br><span class="line">  <span class="keyword">set</span> (output_file <span class="variable">$&#123;output_file&#125;</span>.o)</span><br><span class="line">  <span class="keyword">add_custom_command</span>(OUTPUT <span class="variable">$&#123;output_file&#125;</span></span><br><span class="line">                     <span class="keyword">COMMAND</span> <span class="variable">$&#123;C_COMPILER&#125;</span> -c <span class="variable">$&#123;source_file&#125;</span></span><br><span class="line">                     DEPENDS <span class="variable">$&#123;source_file&#125;</span>)</span><br><span class="line"><span class="keyword">endmacro</span>()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 调用</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="属性"><a href="#属性" class="headerlink" title="属性"></a>属性</h3><p>set_property get_property</p>
+<p>target_compile_options</p>
+<p>可以灵活地设定全局或者只针对若干目标指定，可以避免副作用互相影响。</p>
+<h3 id="生成器表达式（generator-expression）"><a href="#生成器表达式（generator-expression）" class="headerlink" title="生成器表达式（generator expression）"></a>生成器表达式（generator expression）</h3><p>生成器表达式是CMake中一种特殊的函数，特点是可以获取表达式的语境信息，不需要特意传入参数，比如可以根据语境确定当前的语言。</p>
+<p>比如如果要向CUDA的编译器nvcc传入参数</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">target_compile_options</span>(enable_utf8 INTERFACE</span><br><span class="line">    $&lt;$&lt;BUILD_INTERFACE:$&lt;COMPILE_LANGUAGE:CUDA&gt;&gt;: -Xcompiler=/utf-<span class="number">8</span> &gt;)</span><br></pre></td></tr></table></figure>
+<p><code>$&lt;COMPILE_LANGUAGE:CUDA&gt;</code>保证<code>-Xcompiler=/utf-8</code>只传给CUDA的编译选项，且<code>$&lt;BUILD_INTERFACE:...&gt;</code>说明这不作为源文件的路径。这些功能都不需要显示地传递参数。</p>
+<h1 id="编译模型"><a href="#编译模型" class="headerlink" title="编译模型"></a>编译模型</h1><h2 id="自己的库"><a href="#自己的库" class="headerlink" title="自己的库"></a>自己的库</h2><p>只介绍最现代的“面向目标”的方法，add_include_directories、include_directories等不介绍。</p>
+<h3 id="add-executable-add-library"><a href="#add-executable-add-library" class="headerlink" title="add_executable/add_library"></a>add_executable/add_library</h3><p>生成目标<br>“构造函数”</p>
+<h4 id="静态-动态库"><a href="#静态-动态库" class="headerlink" title="静态/动态库"></a>静态/动态库</h4><p>不需要指定具体命令<br>INTERAFACE见下</p>
+<h3 id="target-include-directories"><a href="#target-include-directories" class="headerlink" title="target_include_directories"></a>target_include_directories</h3><p>指定头文件（目录）<br>具体需要什么头文件在c代码中include</p>
+<h3 id="target-link-libraries"><a href="#target-link-libraries" class="headerlink" title="target_link_libraries"></a>target_link_libraries</h3><p>指定库，包括库的组成部分头文件、二进制文件、编译选项</p>
+<h3 id="target-compile-options"><a href="#target-compile-options" class="headerlink" title="target_compile_options"></a>target_compile_options</h3><p>指定编译选项</p>
+<h3 id="INTERFACE-PRIVATE-PUBLIC"><a href="#INTERFACE-PRIVATE-PUBLIC" class="headerlink" title="INTERFACE/PRIVATE/PUBLIC"></a>INTERFACE/PRIVATE/PUBLIC</h3><p>他有、私有、他有及私有</p>
+<h4 id="INTERFACE库"><a href="#INTERFACE库" class="headerlink" title="INTERFACE库"></a>INTERFACE库</h4><p>不生成文件，用于指定头文件目录和编译选项。添加的文件仅用于在ide中展示</p>
+<h2 id="别人的库"><a href="#别人的库" class="headerlink" title="别人的库"></a>别人的库</h2><h3 id="find-package"><a href="#find-package" class="headerlink" title="find_package"></a>find_package</h3><p>获得上述目标</p>
+<h3 id="FetchContent"><a href="#FetchContent" class="headerlink" title="FetchContent"></a>FetchContent</h3><p>可以下东西，但是目前还没解决</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>, <a href="/tags/CMake/">CMake</a>
+  </div>
+
+        
+  <div class="addthis addthis_toolbox addthis_default_style">
+    
+      <a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+    
+    
+      <a class="addthis_button_tweet"></a>
+    
+    
+      <a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+    
+    
+      <a class="addthis_button_pinterest_pinit" pi:pinit:layout="horizontal"></a>
+    
+    <a class="addthis_counter addthis_pill_style"></a>
+  </div>
+  <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js"></script>
+
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">Comments</h1>
+
+  
+      <div id="fb-root"></div>
+<script>
+  (function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=123456789012345";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+</script>
+
+<div class="fb-comments" data-href="https://melonedo.github.io/2022/01/03/CMake%E6%B5%85%E6%9E%90/index.html" data-num-posts="5" data-width="840" data-colorscheme="light"></div>
+      
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="Search">
+    <input type="hidden" name="as_sitesearch" value="melonedo.github.io">
+  </form>
+</div>
+
+
+  
+
+  
+<div class="widget tag">
+  <h3 class="title">Tags</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/C/">C++</a><small>1</small></li>
+  
+    <li><a href="/tags/CMake/">CMake</a><small>3</small></li>
+  
+    <li><a href="/tags/julia/">julia</a><small>2</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>8</small></li>
+  
+    <li><a href="/tags/读书笔记/">读书笔记</a><small>4</small></li>
+  
+    <li><a href="/tags/随想/">随想</a><small>2</small></li>
+  
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2022 melonedo
+  
+</div>
+<div class="clearfix"></div></footer>
+  
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+
+
+<script src="/js/gallery.js"></script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+</body>
+</html>

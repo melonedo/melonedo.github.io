@@ -1,0 +1,306 @@
+<!DOCTYPE HTML>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  
+  <title>虚继承与虚函数：模型、实现与发展 | melonedo&#39;s blog</title>
+  <meta name="author" content="melonedo">
+  
+  <meta name="description" content="近日看LLVM的代码，看到了大量在简单的C++代码中不常见的多继承，也看到了不少虚继承，同时为了了解对应的ABI能否直接移植到Julia，不得不深入挖掘了“对象”的模型在C中的实现，故结合之前的一些观察作此文章备忘。
+C++的对象模型需求分析对象指的是定义了行为，并可以储存行为所需要的数据的一种结构">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="虚继承与虚函数：模型、实现与发展"/>
+  <meta property="og:site_name" content="melonedo&#39;s blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="melonedo&#39;s blog" type="application/atom+xml">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">melonedo&#39;s blog</a></h1>
+  <h2><a href="/">倘若星河昭见，能否有我在列</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div>
+</header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article id="post-虚继承与虚函数：模型、实现与发展" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time class="dt-published" datetime="2022-02-04T10:19:20.000Z"><a href="/2022/02/04/虚继承与虚函数：模型、实现与发展/">2022-02-04</a></time>
+      
+      
+  
+    <h1 class="p-name title" itemprop="headline name">虚继承与虚函数：模型、实现与发展</h1>
+  
+
+    </header>
+    <div class="e-content entry" itemprop="articleBody">
+      
+        <p>近日看LLVM的代码，看到了大量在简单的C++代码中不常见的多继承，也看到了不少虚继承，同时为了了解对应的ABI能否直接移植到Julia，不得不深入挖掘了“对象”的模型在C中的实现，故结合之前的一些观察作此文章备忘。</p>
+<h2 id="C-的对象模型"><a href="#C-的对象模型" class="headerlink" title="C++的对象模型"></a>C++的对象模型</h2><h3 id="需求分析"><a href="#需求分析" class="headerlink" title="需求分析"></a>需求分析</h3><p>对象指的是定义了行为，并可以储存行为所需要的数据的一种结构。由于C++是静态的语言，一个对象的所有的行为都在编译后几乎完全确定，仅剩多态相关的函数可能被后续代码修改。表达一类对象的行为和状态的载体是类型，在面向对象的语境中又叫做类（class）。由于我们会定义很多具有类似行为的类，为了复用这些代码，C++中允许一个类A继承另一个类B，使得A的行为可以基于B的行为表达，即表达A的行为时只需要表达A和B不同的部分即可。通常的代码中，这些行为需要引用该对象的一些成员用于存储状态，或者调用其他的成员函数，而C++非模板/宏的语法要求在为某一对象声明行为（函数）时，能够根据此函数声明的类型获取对应成员的信息，最简单的方法是将这些函数所对应的状态也必须在对应的类中一并说明。也就是说，类A继承类B时，必须同时继承类B的数据成员和函数成员，才能保证类B的函数可以使用在类A上。虽然不太常见，C++允许一个类继承多个类，获取这些类所有的行为和状态。这带来的问题是有些状态是定义在对象上，必须严格保持一个对象一组状态，C++的解决方法是使用虚继承，虚基类保证一个对象只有一个，代价是偏移地址只能在运行时读写虚表确定。</p>
+<p>针对复杂继承关系，C++的解决方案是使用子对象模型。最终运行时一个对象必须有一个确定的类型，用以分配内存，这个对象称为<strong>完整对象</strong>。这个对象的类型如果继承了其他的类作为<strong>基类</strong>，那么这个完整对象对应的内存中的数据的一部分成为基类的<strong>子对象</strong>。C++要求存在于派生类的完整对象中的子对象和基类自身的完整对象几乎相同，唯一的区别是作为子对象时如果需要完整对象的信息（如RTTI），获取的是真正的完整对象的信息，而不是当前子对象的信息。</p>
+<p>多态也是一个常见的要求，即允许相同的代码在传入不同的数据时可以做出不同的行为。如果不同的数据的类型在编译前已知（静态多态），可以通过函数重载（overloading）解决。而如果不同数据的类型需要在运行时才能确定（动态多态），那么唯一的方法是利用对象的<strong>虚函数</strong>在运行时选择代码，即动态分发（dynamic dispatch）。上述的动态多态仅仅局限于第一个参数，因此可以给每个设计的类型编写动态分发表，记录运行时的类型信息，用于函数调用等，这个表称为虚表（vtable）。</p>
+<p>虚继承（virtual inheritance）关系是多态的另一个体现。相比于实继承要求基类的子对象必须位于派生类的子对象内部，虚继承为了保证一个完整对象中只有一个虚基的子对象，允许虚基子对象的位置相对派生类子对象的位置不确定使得虚基类的子对象具体位置不能只根据子对象的类型确定，而需要根据完整对象的类型确定，因此访问虚基类的成员时，同样需要访问虚表确定具体的偏移地址。</p>
+<p>下面是这个上述模型中一些比较重要的概念。</p>
+<h3 id="子对象模型"><a href="#子对象模型" class="headerlink" title="子对象模型"></a>子对象模型</h3><p>子对象是C++实现过程中非常重要的模型，指的是通过取一个完整对象中的不同子对象，可以调用这个子对象的类型的方法；另一方面，这也要求编译器在编译一个对象的代码时，必须要考虑到当前的类可能是完整对象，也可能只是其他完整对象的子对象。特别是虚继承，这要求不假定虚基位于某个位置，而是通过查询虚表来确定。在涉及了复杂继承关系的情况下，这也要求调用虚函数和虚函数本身密切配合，在不同的子对象间不断转换。</p>
+<h3 id="this指针"><a href="#this指针" class="headerlink" title="this指针"></a><code>this</code>指针</h3><p>C++，在一个类的成员函数中指示当前操作的（子）对象的方法是隐式传递一个<code>this</code>指针，这个指针的类型和定义当前的类相同。而一个完整对象中会包含复杂的子对象关系，这也反映在<code>this</code>的转换的复杂性上。当不需要涉及虚基时，转换只是对<code>this</code>的加减，而涉及虚基时，还需要读取内存，更加地复杂。从基类子对象转到派生类子对象和从派生类子对象转到子对象都是同理。</p>
+<blockquote>
+<p>如果允许使用RTTI，甚至可以在一个完整对象之中毫不相关的两个子对象之间转换，这时候代价可能是巨大的，比如可能是先找到完整对象后搜索继承树确定目标子对象的位置。</p>
+</blockquote>
+<h3 id="虚表的位置"><a href="#虚表的位置" class="headerlink" title="虚表的位置"></a>虚表的位置</h3><p>由于动态分发都局限于单个参数，因此这些的运行时特性都采用虚表来完成。C++的一个设计选择是把虚表存储于对象本身，使得指向复杂对象的指针仍然是简单指针，而对象的复杂特性由对象本身额外存储虚表来实现。由于子对象的复杂性，这意味着一个对象可能会需要多份虚表，保证总是可以查阅虚表动态分发。</p>
+<h2 id="Itanium-C-ABI中的实现方法"><a href="#Itanium-C-ABI中的实现方法" class="headerlink" title="Itanium C++ ABI中的实现方法"></a><a target="_blank" rel="noopener" href="https://itanium-cxx-abi.github.io/cxx-abi/abi.html">Itanium C++ ABI</a>中的实现方法</h2><p>ABI负责将C++代码中的类翻译为机器可以执行的具体、底层的语义。根据WG21 proposal <a target="_blank" rel="noopener" href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4028.pdf">N4028 Defining a Portable C++ ABI</a>，大部分编译器都采用Itanium ABI（也叫common vendor ABI），MSVC则采用另一种不公开的ABI。为了兼容，Clang可以采用上述两种ABI之一。</p>
+<h3 id="术语定义"><a href="#术语定义" class="headerlink" title="术语定义"></a>术语定义</h3><p>以下定义都是针对类型为A的完整对象，即某一种特定的继承关系而言的。</p>
+<ul>
+<li>基：A继承于B，则B是A的基。视语境，可以简称为B是基。一个完整对象中可以有多个类型是B的子对象，如果需要区分会补充说明。</li>
+<li>完整对象：程序最终运行时构造出的对象。</li>
+<li>最终类（most derived class）：一个完整对象不考虑继承关系时所属的类型。</li>
+<li>子对象（subobject）：完整对象中类型是基类B的对象也是相对完整地，称为子对象。</li>
+</ul>
+<h4 id="基的分类"><a href="#基的分类" class="headerlink" title="基的分类"></a>基的分类</h4><ul>
+<li>虚基：C是A或A的基，若C虚继承于B，B是A的虚基。这C与A间具体是哪种继承关系无关。</li>
+<li>实基（non-virtual base）：基B到A的继承链条中完全没有虚继承。</li>
+<li>虚基的实基：如字面意义，基B到A的继承链条中有虚继承，但B本身不直接被虚继承。</li>
+<li>morally virtual base：虚基和虚基的实基在Itanium ABI中统称morally virtual base，即涉及虚继承的基。我不使用这个说法所以不翻译。</li>
+<li>首基（primary base）：选做第一个的基，和派生子对象共享首地址（<code>this</code>）和虚表。</li>
+</ul>
+<p>实基、虚基、虚基的实基包括了一个最终类的基的所有情况。</p>
+<h4 id="虚函数相关"><a href="#虚函数相关" class="headerlink" title="虚函数相关"></a>虚函数相关</h4><ul>
+<li>虚函数：行为根据最终类，而不是定义函数的类确定的函数。</li>
+<li>声明：在某个基B中声明一个函数是虚函数，也简称B声明虚函数。</li>
+<li>重写（override）：在某个基B中重新定义了已经声明的虚函数，也简称B重写虚函数。</li>
+</ul>
+<h3 id="虚表"><a href="#虚表" class="headerlink" title="虚表"></a>虚表</h3><p>Itanium ABI中，虚表指针（也就是<code>this</code>）指向的表格正负偏移处都有数据，从高到低分别是：</p>
+<ul>
+<li>0及更大：虚函数入口地址。</li>
+<li>-1: 完整对象的RTTI信息<code>typeinfo*</code>。比C++标准更严格，Itanium ABI保证此处的typeinfo的指针也是相等的，即实际上可以通过多态类的typeinfo的地址确定对象的类型是否相等。</li>
+<li>-2: 当前子对象相对完整对象的偏移（offset to top），为正数。用于从子对象找到完整对象。</li>
+<li>更小：当前子对象距离各虚基子对象的偏移，一般为负数。</li>
+<li>更更小：虚基或虚基的实基调用时需要的子对象和当前子对象的偏移（vcall offset）。</li>
+</ul>
+<p>表中除了RTTI信息和相对完整对象的偏移是固定的，其他内容都是数目不定的。Itanium ABI允许子类和首基共享虚表，因此子类新增的虚表内容将离虚表的0更远，保持首基的虚表内容完整。</p>
+<p>当一个完整对象的最终类确定时，需要为最终类涉及的所有的基类子对象都编写一份虚表。由于一个最终类可能会有很多的基类，因此虚表的数量可能远多于类的数量。</p>
+<h4 id="虚基位置"><a href="#虚基位置" class="headerlink" title="虚基位置"></a>虚基位置</h4><p>完整对象的最终类确定时，将在各子对象对应的虚表中记录各虚基的位置。从虚表中加载出虚基的偏移，加上当前子对象的地址（<code>this</code>）就可以得到虚基的地址。要得到虚基B的实基C的地址，还要在这个地址的基础上再加上C相对B的地址的偏移。要注意不到最终连接的时候都不能确定当前的对象是完整对象，不能把当前的子对象当成完整对象来直接用固定的偏移寻址而不经过虚表。</p>
+<h3 id="虚函数位置"><a href="#虚函数位置" class="headerlink" title="虚函数位置"></a>虚函数位置</h3><p>虚函数调用的规则则显得非常地折磨了。首先需要确定一个最终类中各个子对象的虚表中到底放了什么函数：</p>
+<ul>
+<li>这个类中声明为虚方法的虚函数。</li>
+<li>这个类中重写的函数。由于Itanium ABI要求调用时<code>this</code>指向重写函数的子对象，故这里重复写一遍有可能避免调整<code>this</code>。</li>
+<li>虚基的虚表内容比较多，包括了虚基本身声明和重写的所有虚函数，以及虚基的实基声明或重写的所有虚函数。同时，由于<code>this</code>的调整可能需要从虚基子对象跳到其他子对象，还为这里包括的每个函数都记录一个vcall offset，用于动态调整<code>this</code>。虚基的虚基也是最终类的虚基，故相关的内容不需要记录。</li>
+</ul>
+<p>注意如果选中了一个类作为首基，则直接派生类虚表将和首基共享，即序号较小的部分是首基的内容，而序号较大，即偏移的绝对值较大的部分是直接派生类的虚表。首基的虚表和派生类的虚表都按照上述规则分别计算内容，只不过一个类重写的函数如果在首基的虚表中，则派生类的虚表中省略此项，只需要保证一个子对象中重写的函数在这个子对象本身的虚表或共享部分的虚表即可。</p>
+<p>因此，可以发现同一个虚函数体的入口实际上有多个备份，除了对子对象的调整不同外，这些函数都指向同一个函数体：</p>
+<ul>
+<li>声明虚函数的子对象的虚表包括此虚函数。</li>
+<li>重写了虚函数的子对象的虚表包括此虚函数，或者在和首基共享的部分包括。</li>
+<li>虚基和虚基的实基的所有声明或定义的虚函数都包含在虚基的虚表中。和上面同样，虚基B的虚基C也是完整对象的虚基，虚函数放在C自己的虚表。</li>
+</ul>
+<h3 id="虚函数调用流程"><a href="#虚函数调用流程" class="headerlink" title="虚函数调用流程"></a>虚函数调用流程</h3><p>假设当前的子对象（不一定是完整对象）静态类型为A，要调用的虚函数在B中声明，最终重写的函数体位于C中，初步考虑调用A的基D中重写的版本。为了分析，首先要确立整个调用过程中的不变量：</p>
+<ul>
+<li>跳转到子对象的虚表中的虚函数时，保证<code>this</code>指向这个虚表对应的类型为D的子对象。</li>
+<li>执行虚函数体时，保证<code>this</code>指向这个函数体重写时的类型为C的子对象，即和静态调用的方法相同。</li>
+</ul>
+<p>保证上述两个不变量需要在调用虚表时不断调整<code>this</code>，同时虚表中的入口不一定直接指向虚函数体，可能先跳转到一个调整<code>this</code>的代码再执行函数体。</p>
+<h4 id="转换代码：A-gt-D"><a href="#转换代码：A-gt-D" class="headerlink" title="转换代码：A-&gt;D"></a>转换代码：A-&gt;D</h4><p>保证前一个不变量需要在调用虚函数前将当前的子对象转换为基D的子对象，也就是<code>static_cast&lt;D*&gt;(this)</code>。</p>
+<ul>
+<li>如果基D是A的实基，将<code>this</code>加上一个固定的偏移即可</li>
+<li>如果基D是A的虚基，将<code>this</code>加上一个从虚表中读出的虚基偏移</li>
+<li>如果基D是A的虚基V的实基，将<code>this</code>加上一个从虚表中读出的虚基偏移转换为V的子对象，再加上一个固定的偏移从V的子对象转换为D的子对象</li>
+</ul>
+<h4 id="调整代码：D-gt-C"><a href="#调整代码：D-gt-C" class="headerlink" title="调整代码：D-&gt;C"></a>调整代码：D-&gt;C</h4><p>保证后一个不变量需要在虚函数的入口处加入一段调整<code>this</code>的程序，再进入虚函数的本体。</p>
+<ul>
+<li>D就是C：直接进入虚函数本体。</li>
+<li>D是C的实基：先将<code>this</code>减去一个固定的偏移再进入。</li>
+<li>D是C的虚基：<code>this</code>加上vcall offset再进入。</li>
+<li>D是C的虚基V的实基：<code>this</code>首先减去一个固定偏移转换为V子对象，再加上V子对象的虚表中的vcall offset。</li>
+</ul>
+<p>PS：这段代码称作thunk，也一样有mangled name</p>
+<p>本质上vcall offset并不是必须的，实际上可以在连接时那每种情况的偏移地址都硬编码到调整代码中，但这样多段机器码通常比一个整数要长，是用大量指令缓存负担换少量的数据缓存负担，不太划算。</p>
+<h4 id="D的选择"><a href="#D的选择" class="headerlink" title="D的选择"></a>D的选择</h4><p>根据上述的观察，任何一个重写了f的子对象都可以用来调用f，具体的选择只有运行时效率的区别。如果选择的D在连接后的确是最终运行的D，或者D不需要调整<code>this</code>，那么调用时都不会额外地产生太多的负担，而如果选错了，可能会多次地调整<code>this</code>，造成很大开销。</p>
+<h5 id="重写子对象虚表也包含虚函数带来的优化"><a href="#重写子对象虚表也包含虚函数带来的优化" class="headerlink" title="重写子对象虚表也包含虚函数带来的优化"></a>重写子对象虚表也包含虚函数带来的优化</h5><p>至此可以解释前面为何重写了虚函数的虚表中要包含对应的虚函数。如果虚函数只列在声明虚函数的基子对象的虚表中，那么当前子对象就是最终重写了虚函数f的子对象，而声明f的实基不是首基，在调用前需要首先加上偏移调整<code>this</code>保证第一个不变量，而调用后又要把<code>this</code>减去同样的偏移，又回到了最初的<code>this</code>。</p>
+<p>这上面的分析都只针对对象完整建立后的行为，C++的对象未构造完时也可以使用虚函数，但此时虚函数重写的结果可能和完整对象的结果不同，又需要额外的复杂度，有兴趣直接参考原文。</p>
+<h2 id="MSVC中实现方法"><a href="#MSVC中实现方法" class="headerlink" title="MSVC中实现方法"></a>MSVC中实现方法</h2><p>虽然MSVC没有公开他的ABI，但通过未公开的编译指令<code>/d1reportAllClassLayout</code>和<code>/d1reportSingleClassLayoutXXX</code>以及反汇编可以判断出使用的ABI。作为比较，这里也简单说明。</p>
+<h3 id="虚表-1"><a href="#虚表-1" class="headerlink" title="虚表"></a>虚表</h3><p>虚表中的内容肯定大差不差，主要的区别是MSVC中虚基偏移单独有一个指针<code>vbptr</code>，和虚函数（应该还包括RTTI等其他信息）的虚表指针<code>vfptr</code>不共用。同时，MSVC由于虚函数调用的不变量不同，不做<a href="#重写子对象虚表也包含虚函数带来的优化">重写子对象虚表也包含虚函数带来的优化</a>，因此虚函数只位于声明了这个函数的子对象的虚表中。</p>
+<h3 id="虚函数调用"><a href="#虚函数调用" class="headerlink" title="虚函数调用"></a>虚函数调用</h3><p>仍假设调用子对象A中调用B中声明的虚函数f，f最终在C中重写。f只存在B的虚表中，因此不存在选择重写对象D的可能。MSVC在虚函数调用过程中的不变量和Itanium ABI不同：</p>
+<ul>
+<li>跳转虚函数时，保证<code>this</code>指向声明f的基类B的子对象。</li>
+<li>执行虚函数体时，也保证<code>this</code>指向基类B的子对象。</li>
+</ul>
+<p>第二个不变量在C是A的实基时很正常，由B的子对象可以算出C的子对象的位置，但如果C是A的虚基或虚基的实基，那么保证<code>this</code>指向一个虚基的子对象是不实用的，因此令<code>this</code>指向的位置是C类<strong>完整</strong>子对象中对应B的子对象的位置，即指向C子对象再加上一个固定偏移。</p>
+<p>将A子对象转换到B子对象的过程是相似的。而从B子对象转换到C子对象时，MSVC中不使用vcall offset，所有的情况都直接硬编码一个偏移地址用于协调两个不变量。</p>
+<h2 id="其他语言的动态分发实现"><a href="#其他语言的动态分发实现" class="headerlink" title="其他语言的动态分发实现"></a>其他语言的动态分发实现</h2><h3 id="JIT优化"><a href="#JIT优化" class="headerlink" title="JIT优化"></a>JIT优化</h3><p>Java的OOP模型和C++类似，但不允许多继承普通的类，只能多继承不能携带数据的接口（interface）。根据，在HotSpot虚拟机中，当使用来自基类的虚函数（<a target="_blank" rel="noopener" href="https://wiki.openjdk.java.net/display/HotSpot/VirtualCalls">VirtualCall</a>）时，查虚表的方法和C++类似，即搜索<code>_klass</code>成员以获得类的实例，再从这个实例中搜索虚函数。而当使用来自接口的虚函数（<a target="_blank" rel="noopener" href="https://wiki.openjdk.java.net/display/HotSpot/InterfaceCalls">InterfaceCall</a>）时，虚拟机会根据<code>_klass</code>搜索整个继承树，找到这个接口的实例，再从接口实例中的itable找到函数。</p>
+<p>但HotSpot是一个JIT虚拟机，可以在运行期改变代码，因此可以利用一些启发式来简化上述流程。根据调用一个虚函数的代码通常可以直接根据调用的位置推断出被调用的函数，即很多代码并不是需要动态分发，虚函数仅仅是提供接口留待后续补充，可以把虚函数调用替换为一个类型检查+静态调用，即：<code>obj.f(...)</code>可以根据连接时的最终类简化为<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">assert typeof(obj) &#x3D;&#x3D; SomeType</span><br><span class="line">obj.SomeType::f(...)</span><br></pre></td></tr></table></figure><br>当断言失败后并不引起程序错误，而是修改代码，完整地调用虚函数。</p>
+<h3 id="字典型虚表"><a href="#字典型虚表" class="headerlink" title="字典型虚表"></a>字典型虚表</h3><p>Python, javascript这些经典的动态语言中对这些OOP的实现更加地简单，即每个类都必须携带一个字典作为<code>obj.attr</code>时的虚表。由于这些语言没有明确的编译和运行的区别，除了一些内置的方法，虚表不能简单地用整数作为索引，而只能用字符串做索引。</p>
+<p>由于数据和方法都只能存在字典中，因此不存在用整数索引时需要分配连续空间作为某类专用的问题，故这些语言中不存在<code>this</code>调整的问题，不同的类别间转换不需要任何的操作。根据一个成员的名称就可以确定成员，说明这些类中默认的继承方法是C++中少见的虚继承，所有的数据成员都是一个对象只有一个。python原生支持多继承，javascript虽然没有原生支持，但同样可以通过重写“成员”的概念来间接实现多继承。当然这些语言不要求静态确定某个方法或成员存在，即使不使用多继承，也可以通过直接在对象中定义相应成员来实现所需要的功能。</p>
+<p>PS：字典本身的方法是如何实现的？这里没有鸡生蛋还是蛋生鸡的矛盾，CPython的一部分比较基本的属性固定存在，用偏移直接寻址。CPython中，一个Python对象<code>PyObject</code>开头总包含它的类型<code>PyTypeObject</code>（以及引用计数），这个类型中很多基本的方法直接定义在结构体中，如<code>__dict__</code>和<code>__add__</code>。</p>
+<h3 id="虚表不放在对象里"><a href="#虚表不放在对象里" class="headerlink" title="虚表不放在对象里"></a>虚表不放在对象里</h3><p>Go和rust的解决方法是类似的，同样是编制虚表进行动态分发，这两个语言并不把虚表放在对象本身，而是定义了新的“动态”类型，指向动态类型的指针是指向类型信息（包括了虚表）和对象的两个指针。对于普通的数据类型，这些语言中和C++一样，都可以定义若干个静态的方法，但调用这些方法要求程序静态地确定类型，而不能动态分发，即数据本身是不携带类型信息的。而要支持动态分发需要将普通的类型转换为支持动态分发的类型，即额外地带上类型信息。</p>
+<p>Go中支持动态分发的类型称为<a target="_blank" rel="noopener" href="https://www.tapirgames.com/blog/golang-interface-implementation">接口（interface）</a>。一个接口的定义包括了若干个成员函数，当一个类型定义了这些成员函数时，这个类型自动满足接口的要求，可以转换为对应接口。从静态类型已知的数据转换到接口类型是发生在运行时根据类型计算并缓存的，这个过程实际上只是简单地根据接口的成员函数，编制对应的RTTI，并填入该接口的各个成员函数的具体实现。</p>
+<p>Rust中支持动态分发的类型称为<a target="_blank" rel="noopener" href="https://doc.rust-lang.org/reference/types/trait-object.html">trait object</a>。和go不同，rust中一个类型能够转换为的trait类型需要在类型声明时明确列出。允许转换时，trait object同样是由类型信息和对象本身的指针构成。</p>
+<p>把虚函数限制在特定类型中，使得虚函数调用仅仅在用户显式使用动态分发时才启用，而虚函数内部本身对于使用的对象的最终类是清楚的，这使得函数可以很轻松地去虚拟化（devirtualize）。</p>
+<h3 id="更复杂的虚表"><a href="#更复杂的虚表" class="headerlink" title="更复杂的虚表"></a>更复杂的虚表</h3><p>与以上所有的语言不同，Julia中动态分发是多分发（multiple dispatch），即动态分发时不仅第一个参数，所有的参数都参与动态分发。C++中静态分发也同样是需要考虑所有的参数的多分发，但动态分发时需要使用非常局限的虚函数方法。多分发使得搜索合适的方法非常地复杂，函数分发表不能简单地编成虚表，因此julia通常不会使用动态分发，而是尽可能地静态确定类型后使用静态分发。当无法确定静态类型时，类型会和对象一同存储，在调用函数时搜索<strong>函数的虚表</strong>确定所使用的方法。由于函数的参数包含了复杂的类型约束，julia会缓存根据约束算出的结果。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>, <a href="/tags/C/">C++</a>
+  </div>
+
+        
+  <div class="addthis addthis_toolbox addthis_default_style">
+    
+      <a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+    
+    
+      <a class="addthis_button_tweet"></a>
+    
+    
+      <a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+    
+    
+      <a class="addthis_button_pinterest_pinit" pi:pinit:layout="horizontal"></a>
+    
+    <a class="addthis_counter addthis_pill_style"></a>
+  </div>
+  <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js"></script>
+
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">Comments</h1>
+
+  
+      <div id="fb-root"></div>
+<script>
+  (function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=123456789012345";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+</script>
+
+<div class="fb-comments" data-href="https://melonedo.github.io/2022/02/04/%E8%99%9A%E7%BB%A7%E6%89%BF%E4%B8%8E%E8%99%9A%E5%87%BD%E6%95%B0%EF%BC%9A%E6%A8%A1%E5%9E%8B%E3%80%81%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%8F%91%E5%B1%95/index.html" data-num-posts="5" data-width="840" data-colorscheme="light"></div>
+      
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="Search">
+    <input type="hidden" name="as_sitesearch" value="melonedo.github.io">
+  </form>
+</div>
+
+
+  
+
+  
+<div class="widget tag">
+  <h3 class="title">Tags</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/C/">C++</a><small>1</small></li>
+  
+    <li><a href="/tags/CMake/">CMake</a><small>3</small></li>
+  
+    <li><a href="/tags/julia/">julia</a><small>2</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>8</small></li>
+  
+    <li><a href="/tags/读书笔记/">读书笔记</a><small>4</small></li>
+  
+    <li><a href="/tags/随想/">随想</a><small>2</small></li>
+  
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2022 melonedo
+  
+</div>
+<div class="clearfix"></div></footer>
+  
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+
+
+<script src="/js/gallery.js"></script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+</body>
+</html>
