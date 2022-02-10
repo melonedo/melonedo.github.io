@@ -1,0 +1,212 @@
+<!DOCTYPE HTML>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  
+  <title>CMake导出及安装包模板 | melonedo&#39;s blog</title>
+  <meta name="author" content="melonedo">
+  
+  <meta name="description" content="生成库这里简单写一个依赖boost的库，头文件没有包含boost相关，所以Boost::boost也是private。
+1234567891011121314151617181920212223242526272829cmake_minimum_required(VERSION 3.13)# 少写个">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="CMake导出及安装包模板"/>
+  <meta property="og:site_name" content="melonedo&#39;s blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="melonedo&#39;s blog" type="application/atom+xml">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">melonedo&#39;s blog</a></h1>
+  <h2><a href="/">倘若星河昭见，能否有我在列</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div>
+</header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article id="post-CMake导出及安装包模板" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time class="dt-published" datetime="2022-02-10T10:34:16.000Z"><a href="/2022/02/10/CMake导出及安装包模板/">2022-02-10</a></time>
+      
+      
+  
+    <h1 class="p-name title" itemprop="headline name">CMake导出及安装包模板</h1>
+  
+
+    </header>
+    <div class="e-content entry" itemprop="articleBody">
+      
+        <h2 id="生成库"><a href="#生成库" class="headerlink" title="生成库"></a>生成库</h2><p>这里简单写一个依赖boost的库，头文件没有包含boost相关，所以<code>Boost::boost</code>也是private。</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">cmake_minimum_required</span>(VERSION <span class="number">3.13</span>)</span><br><span class="line"><span class="comment"># 少写个C语言省点配置的时间</span></span><br><span class="line"><span class="keyword">project</span>(eval_add VERSION <span class="number">0.0</span>.<span class="number">1</span> LANGUAGES CXX)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 提供CMAKE_INSTALL_INCLUDEDIR</span></span><br><span class="line"><span class="keyword">include</span>(GNUInstallDirs)</span><br><span class="line"><span class="comment"># 外部依赖</span></span><br><span class="line"><span class="keyword">find_package</span>(Boost REQUIRED COMPONENTS regex)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义库，没什么特别的</span></span><br><span class="line"><span class="keyword">add_library</span>(eval_add SHARED eval_add.cpp)</span><br><span class="line"><span class="keyword">target_link_libraries</span>(eval_add PRIVATE Boost::dynamic_linking Boost::boost Boost::regex Boost::diagnostic_definitions)</span><br><span class="line"><span class="keyword">if</span>(MSVC)</span><br><span class="line">    <span class="keyword">target_compile_options</span>(eval_add PRIVATE $&lt;BUILD_INTERFACE:/utf-<span class="number">8</span>&gt;)</span><br><span class="line"><span class="keyword">endif</span>()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 需要区分编译和安装，安装后包含路径只是一个简单的include</span></span><br><span class="line"><span class="keyword">target_include_directories</span>(eval_add</span><br><span class="line">  PUBLIC</span><br><span class="line">    $&lt;BUILD_INTERFACE:<span class="variable">$&#123;eval_add_SOURCE_DIR&#125;</span>/<span class="keyword">include</span>&gt;</span><br><span class="line">    $&lt;INSTALL_INTERFACE:<span class="variable">$&#123;CMAKE_INSTALL_INCLUDEDIR&#125;</span>&gt;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">set_target_properties</span>(eval_add PROPERTIES</span><br><span class="line">    CXX_STANDARD <span class="number">11</span></span><br><span class="line">    WINDOWS_EXPORT_ALL_SYMBOLS <span class="keyword">ON</span> <span class="comment"># 懒得写__declspec</span></span><br><span class="line">    DEBUG_POSTFIX -d <span class="comment"># 添加一个后缀区分不同的configuration</span></span><br><span class="line">)</span><br><span class="line"><span class="comment"># 见下</span></span><br><span class="line"><span class="keyword">include</span>(cmake/installer.cmake)</span><br></pre></td></tr></table></figure>
+<h2 id="导出库"><a href="#导出库" class="headerlink" title="导出库"></a>导出库</h2><p>导出指的是让别的CMake项目使用当前的目标<br><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">### cmake/installer.cmake ###</span></span><br><span class="line"><span class="keyword">include</span>(GNUInstallDirs)</span><br><span class="line"><span class="comment"># 版本号为项目版本，生成版本文件</span></span><br><span class="line"><span class="keyword">include</span>(CMakePackageConfigHelpers)</span><br><span class="line">write_basic_package_version_file(EvalAddConfigVersion.cmake</span><br><span class="line">    VERSION <span class="variable">$&#123;eval_add_VERSION&#125;</span></span><br><span class="line">    COMPATIBILITY SameMajorVersion)</span><br><span class="line"><span class="comment"># 安装XXXConfig.cmake（见下）和对应的版本文件</span></span><br><span class="line"><span class="keyword">install</span>(FILES</span><br><span class="line">    <span class="variable">$&#123;CMAKE_CURRENT_SOURCE_DIR&#125;</span>/cmake/EvalAddConfig.cmake</span><br><span class="line">    <span class="variable">$&#123;CMAKE_CURRENT_BINARY_DIR&#125;</span>/EvalAddConfigVersion.cmake</span><br><span class="line">    DESTINATION <span class="variable">$&#123;CMAKE_INSTALL_LIBDIR&#125;</span>/cmake/EvalAdd)</span><br><span class="line"><span class="comment"># 安装生成的二进制文件，用默认配置即可</span></span><br><span class="line"><span class="keyword">install</span>(TARGETS eval_add <span class="keyword">EXPORT</span> EvalAddTargets)</span><br><span class="line"><span class="comment"># 安装本项目的目标</span></span><br><span class="line"><span class="keyword">install</span>(<span class="keyword">EXPORT</span> EvalAddTargets</span><br><span class="line">    <span class="keyword">FILE</span> EvalAddTargets.cmake</span><br><span class="line">    NAMESPACE EvalAdd:: <span class="comment"># 命名空间</span></span><br><span class="line">    DESTINATION <span class="variable">$&#123;CMAKE_INSTALL_LIBDIR&#125;</span>/cmake/EvalAdd)</span><br><span class="line"><span class="comment"># 安装头文件</span></span><br><span class="line"><span class="keyword">install</span>(DIRECTORY <span class="keyword">include</span>/eval_add TYPE <span class="keyword">INCLUDE</span>)</span><br></pre></td></tr></table></figure></p>
+<p>其中安装头文件的地方也可以通过设置目标的<code>PUBLIC_HEADER</code>属性实现，不过看起来似乎设计上不是通用的。</p>
+<p>这个库的Config.cmake需要手写，内容是找到依赖以及包含上面的目标<br><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">### cmake/EvalAddConfig.cmake ###</span></span><br><span class="line"><span class="keyword">include</span>(CMakeFindDependencyMacro)</span><br><span class="line"><span class="comment"># 似乎不需要写REQUIRED</span></span><br><span class="line">find_dependency(Boost COMPONENTS regex)</span><br><span class="line"><span class="keyword">include</span>(<span class="string">&quot;$&#123;CMAKE_CURRENT_LIST_DIR&#125;/EvalAddTargets.cmake&quot;</span>)</span><br></pre></td></tr></table></figure></p>
+<h2 id="使用库"><a href="#使用库" class="headerlink" title="使用库"></a>使用库</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># $&lt;TARGET_RUNTIME_DLLS:target&gt;需要3.21</span></span><br><span class="line"><span class="keyword">cmake_minimum_required</span>(VERSION <span class="number">3.21</span> REQUIRED)</span><br><span class="line"><span class="keyword">project</span>(use_eval_add VERSION <span class="number">0.0</span>.<span class="number">1</span> LANGUAGES CXX)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 找到上面的库，注意此时Boost也需要找到，同样要设置BOOST_ROOT等变量</span></span><br><span class="line"><span class="keyword">find_package</span>(EvalAdd REQUIRED)</span><br><span class="line"></span><br><span class="line"><span class="keyword">add_executable</span>(main main.cpp)</span><br><span class="line"><span class="comment"># 这样就自动处理好了所有的间接依赖、包含路径、编译选项等</span></span><br><span class="line"><span class="keyword">target_link_libraries</span>(main EvalAdd::eval_add)</span><br><span class="line"></span><br><span class="line"><span class="comment">## 接下来是安装可执行文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果不执行后面的安装，把dll复制到生成目录，方便调试</span></span><br><span class="line"><span class="keyword">add_custom_command</span>(<span class="keyword">TARGET</span> main POST_BUILD COMMAND_EXPAND_LISTS</span><br><span class="line">    <span class="keyword">COMMAND</span> <span class="variable">$&#123;CMAKE_COMMAND&#125;</span> -E copy_if_different $&lt;TARGET_RUNTIME_DLLS:main&gt; $&lt;TARGET_FILE_DIR:main&gt;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装应用</span></span><br><span class="line"><span class="keyword">include</span>(GNUInstallDirs)</span><br><span class="line"><span class="comment"># 默认就好</span></span><br><span class="line"><span class="keyword">install</span>(TARGETS main)</span><br><span class="line"><span class="comment"># 不确定怎么做，linux上设置一下RPATH似乎好点</span></span><br><span class="line"><span class="keyword">set_target_properties</span>(main PROPERTIES INSTALL_RPATH <span class="variable">$&#123;CMAKE_INSTALL_FULL_LIBDIR&#125;</span>)</span><br><span class="line"><span class="comment"># 同样，可以复制dll到安装目录</span></span><br><span class="line"><span class="keyword">install</span>(FILES $&lt;TARGET_RUNTIME_DLLS:main&gt; TYPE BIN)</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>, <a href="/tags/CMake/">CMake</a>
+  </div>
+
+        
+  <div class="addthis addthis_toolbox addthis_default_style">
+    
+      <a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+    
+    
+      <a class="addthis_button_tweet"></a>
+    
+    
+      <a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+    
+    
+      <a class="addthis_button_pinterest_pinit" pi:pinit:layout="horizontal"></a>
+    
+    <a class="addthis_counter addthis_pill_style"></a>
+  </div>
+  <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js"></script>
+
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">Comments</h1>
+
+  
+      <div id="fb-root"></div>
+<script>
+  (function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=123456789012345";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+</script>
+
+<div class="fb-comments" data-href="https://melonedo.github.io/2022/02/10/CMake%E5%AF%BC%E5%87%BA%E5%8F%8A%E5%AE%89%E8%A3%85%E5%8C%85%E6%A8%A1%E6%9D%BF/index.html" data-num-posts="5" data-width="840" data-colorscheme="light"></div>
+      
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="Search">
+    <input type="hidden" name="as_sitesearch" value="melonedo.github.io">
+  </form>
+</div>
+
+
+  
+
+  
+<div class="widget tag">
+  <h3 class="title">Tags</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/C/">C++</a><small>1</small></li>
+  
+    <li><a href="/tags/CMake/">CMake</a><small>5</small></li>
+  
+    <li><a href="/tags/julia/">julia</a><small>2</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>10</small></li>
+  
+    <li><a href="/tags/读书笔记/">读书笔记</a><small>4</small></li>
+  
+    <li><a href="/tags/随想/">随想</a><small>2</small></li>
+  
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2022 melonedo
+  
+</div>
+<div class="clearfix"></div></footer>
+  
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+
+
+<script src="/js/gallery.js"></script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+</body>
+</html>
