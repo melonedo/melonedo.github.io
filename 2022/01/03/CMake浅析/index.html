@@ -6,9 +6,11 @@
   <title>C、Make、CMake | melonedo&#39;s blog</title>
   <meta name="author" content="melonedo">
   
-  <meta name="description" content="CMake是一个C语言的项目管理器，用于简便地指明一个C项目构建（build）应用/库的方法，并生成编译脚本（如Makefile）或IDE项目文件（vs解决方案sln），用于最终编译C文件。相比于其他的的项目管理器，CMake的优点是：
+  <meta name="description" content="本文已摆烂
 
-懂C。相比于通用的make，CMake的项目组织方法和C的特">
+CMake是一个C语言的项目管理器，用于简便地指明一个C项目构建（build）应用/库的方法，并生成编译脚本（如Makefile）或IDE项目文件（vs解决方案sln），用于最终编译C文件。相比于其他的的项目管理器，CMake的优点是：
+
+懂C。相比于通用的make，CMake的项目组">
   
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -65,12 +67,16 @@
     </header>
     <div class="e-content entry" itemprop="articleBody">
       
-        <p><strong>CMake</strong>是一个C语言的项目管理器，用于简便地指明一个C项目构建（build）应用/库的方法，并生成编译脚本（如Makefile）或IDE项目文件（vs解决方案sln），用于最终编译C文件。<br>相比于其他的的项目管理器，CMake的优点是：</p>
+        <blockquote>
+<p>本文已摆烂</p>
+</blockquote>
+<p><strong>CMake</strong>是一个C语言的项目管理器，用于简便地指明一个C项目构建（build）应用/库的方法，并生成编译脚本（如Makefile）或IDE项目文件（vs解决方案sln），用于最终编译C文件。<br>相比于其他的的项目管理器，CMake的优点是：</p>
 <ul>
 <li>懂C。相比于通用的make，CMake的项目组织方法和C的特性息息相关，并且内置了众多常见的编译选项，可以避免记忆常见的命令参数在不同环境下的组合。</li>
 <li>通用。一方面大量项目使用CMake管理，CMake众多C工具中的最大公约数，可以用于生成VS的项目，也可以支持VSCode，也可以在*nix环境中适应gcc或clang。同时新的工具如ninja也都会适配CMake生成器。</li>
+<li>可以导入其他项目。一般的cpp项目管理器都不支持导入现成的项目，要手动配置编译参数。虽然支持的项目没那么多，但CMake仍是自动配置参数的唯一希望。</li>
 </ul>
-<h1 id="C项目"><a href="#C项目" class="headerlink" title="C项目"></a>C项目</h1><p>要理解CMake，首先要知道C项目指的是什么。C项目包括源代码（源文件<code>.c</code>/<code>.cpp</code>和头文件<code>.h</code>）以及对应的编译选项，生成若干个目标（target）。目标指的是可直接执行的应用（executable），或可以被用于构建新目标的库（library）。</p>
+<h1 id="C项目"><a href="#C项目" class="headerlink" title="C项目"></a>C项目</h1><p>要理解CMake，首先要知道C项目指的是什么。C项目包括源代码（源文件<code>.c</code>/<code>.cpp</code>和头文件<code>.h</code>）以及对应的编译选项，生成若干个<strong>目标</strong>（target）。目标指的是可直接执行的<strong>应用</strong>（executable），或可以被用于构建新目标的<strong>库</strong>（library）。</p>
 <ul>
 <li>头文件：即<code>.h</code>和<code>.hpp</code>，是代码中不编译而直接共享的部分，包含源文件的接口，以及不编译为机器码的内联函数等。</li>
 <li>源文件：即<code>.c</code>和<code>.cpp</code>，包含可以被编译为机器码的各种函数，在编译后只作为参考，通常不共享。</li>
@@ -83,11 +89,52 @@
 <p>在*nix环境中，我们可以使用gcc生成并调用动态库：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mkdir -p build</span><br><span class="line">gcc -c -o build/hello.o -fpic -I inc src/hello.c</span><br><span class="line">gcc -shared -o build/libhello.so build/hello.o</span><br><span class="line">gcc -o build/main -I inc main.c -L build -l hello</span><br></pre></td></tr></table></figure><br>在Windows中同样可以调用MSVC编译，但指令不尽相同。</p>
 <h1 id="Make"><a href="#Make" class="headerlink" title="Make"></a>Make</h1><p>直接用命令编译的局限性很明显：更改编译指令必须找到对应的命令然后逐个更改，这样的代码重复没有必要。为此，我们可以把上述的各种选项都用变量的形式书写。同时，直接用命令时没有额外的软件分析文件间的依赖，在文件改动后要么重新编译整个项目，要么 手动找出需要重新编译的所有依赖，非常麻烦。这个问题的通常解决方法是使用Make脚本Makefile。</p>
 <p><code>make</code>系统是一个以文件为主体的编译管理系统，可以根据指定的规则，在依赖改变时，逐步地生成中间产品和最终产品。比如上面的例子可以使用Makefile来处理：<br><figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">CC ::= gcc</span><br><span class="line">CPPFLAGS += -I inc</span><br><span class="line">BUILD_DIR ?= build</span><br><span class="line">LDFLAGS += -L <span class="variable">$(BUILD_DIR)</span></span><br><span class="line">LDLIBS += -l hello</span><br><span class="line"></span><br><span class="line"><span class="section">all: <span class="variable">$(BUILD_DIR)</span>/main</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$(BUILD_DIR)</span>/main: <span class="variable">$(BUILD_DIR)</span>/main.o <span class="variable">$(BUILD_DIR)</span>/libhello.so</span><br><span class="line"></span><br><span class="line"><span class="variable">$(BUILD_DIR)</span>/main.o: main.c inc/hello.h</span><br><span class="line">    <span class="variable">$(CC)</span> -c <span class="variable">$(CPPFLAGS)</span> <span class="variable">$(CFLAGS)</span> -o <span class="variable">$@</span> <span class="variable">$&lt;</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$(BUILD_DIR)</span>/hello.o: src/hello.c inc/hello.h</span><br><span class="line">    <span class="variable">$(CC)</span> -c <span class="variable">$(CPPFLAGS)</span> <span class="variable">$(CFLAGS)</span> -fpic -o <span class="variable">$@</span> <span class="variable">$&lt;</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$(BUILD_DIR)</span>/libhello.so: <span class="variable">$(BUILD_DIR)</span>/hello.o</span><br><span class="line">    <span class="variable">$(CC)</span> -shared -o <span class="variable">$@</span> <span class="variable">$^</span></span><br></pre></td></tr></table></figure></p>
+<p>Make的主体就是定义一系列的变量，以及定义一系列的生成规则生成各个文件。变量可以用<code>$(variable)</code>或<code>$x</code>的形式引用，后一种形式只能用于单字符的变量名。另外make还提供一些特殊的自动变量，这些变量的值由规则确定，如<code>$@</code>表示产物，<code>@&lt;</code>表示第一个依赖，<code>@^</code>表示所有的依赖。为了省略括号，这些变量都是单个字符，因此只能挑选符号。规则的形式是<code>产物: 依赖1 依赖2 ...</code>，后面一行以制表符<code>\t</code>开头，说明根据依赖产生产物运行的指令。产物和依赖都可以通配符选择多个文件。Make的使用时需要指定一个产物，将在产物不存在或者依赖更新后自动地生成产物，且自动地处理间接依赖，即规划运行顺序和分析依赖。同时，通过修改变量，可以方便地修改一整组文件的编译命令。</p>
+<p>但make并不内置语言相关的知识，仅仅是针对常见的后缀名定义了一系列内置产生式，如由.cpp产生.o的规则为<code>$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c</code>，这个规则利用了变量，方便调节。</p>
+<h1 id="CMake"><a href="#CMake" class="headerlink" title="CMake"></a>CMake</h1><p>CMake则是一套专为C设计的产生系统，将根据用户提供以及程序内置的知识，生成编译工具可以使用的项目文件，从而用一套代码管理多组编译工具。</p>
+<h2 id="运行框架"><a href="#运行框架" class="headerlink" title="运行框架"></a>运行框架</h2><p>虽然CMake是一个强大的C语言命令库，但是CMake的前端的设计是比较复杂的。CMake中一个项目用一个包含了<code>CMakeLists.txt</code>的文件夹代表。当配置这个项目时，CMake将根据项目的代码和用户环境要求，用描述式的方法确定每个目标生成的要求，这些要求用CMake中的<strong>目标</strong>（target）的<strong>属性</strong>（property），然后再把这些要求<strong>导出</strong>（export）到一个使用于某个编译工具的项目（以下称为编译项目）中。除了对象和目录的属性，这个过程中还涉及了来自用户输入、系统环境、中间状态的各种变量，这些变量包括<strong>环境变量</strong>（environment variable），<strong>普通变量</strong>（normal variable），<strong>缓存变量</strong>（cache variable）。</p>
+<p>CMake脚本需要结合项目要求和用户环境，最终为各个目标配置合适的属性。为目标配置了属性后，这些属性将被导出到一个编译项目中。根据不同的配置（Release/Debug）或不同用途（编译/安装），一个目标可能会被多次导出；同时一个目标的属性可能会被不同的工具（编译、连接、包含）使用，因此使用CMake时要确保目标的各项属性以各种方式导出时都达到想要的效果。也就是说，CMake中不只要配置这些属性的含义，还要配置这些属性在不同语境下的含义。</p>
+<h2 id="类型"><a href="#类型" class="headerlink" title="类型"></a>类型</h2><p>和Shell一样，CMake中基本类型只有字符串，数字、布尔类型都是用对应的字符串表示。由于字符串的基本地位，CMake中一串字符，如<code>foo(a b c)</code>调用后<code>foo</code>收到的是”a”, “b”, “c”三个字符串。</p>
+<p>另外CMake中还有列表类型。当传递参数时，多个参数用空白分割，以一个列表的形式传入函数中。但列表本身只是一个用<code>;</code>分割的字符串，因此”a;b;c”也是一个列表。</p>
+<h2 id="参数"><a href="#参数" class="headerlink" title="参数"></a><a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/latest/manual/cmake-language.7.html#command-arguments">参数</a></h2><p>参数有三种形式，不带引号<code>str</code>、带引号<code>&quot;str&quot;</code>、带方括号<code>[[str]]</code>。不带引号使用时，如果参数是<code>$&#123;变量&#125;</code>的形式，而且变量是一个列表，列表中的每个成员会分别作为函数的参数传递，即传递多个参数。另外两种形式保证传递的是一个参数。使用方括号时不能使用任何转义和变量。</p>
+<h2 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h2><p>CMake中的变量不能简单地用等号赋值，使用方法如下：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>取值</th>
+<th>设值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>环境变量</td>
+<td><code>$ENV&#123;&lt;var&gt;&#125;</code></td>
+<td><code>set(ENV&#123;&lt;var&gt;&#125; &lt;value&gt;...)</code></td>
+</tr>
+<tr>
+<td>普通变量</td>
+<td><code>$&#123;&lt;var&gt;&#125;</code></td>
+<td><code>set(&lt;var&gt; &lt;value&gt;... [PARENT_SCOPE])</code></td>
+</tr>
+<tr>
+<td>缓存变量</td>
+<td><code>$&#123;&lt;var&gt;&#125;</code>或<code>$CACHE&#123;&lt;var&gt;&#125;</code></td>
+<td><code>set(&lt;variable&gt; &lt;value&gt;... CACHE &lt;type&gt; &lt;docstring&gt; [FORCE])</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>另外变量还有作用域和互相覆盖的问题。</p>
+<h2 id="属性"><a href="#属性" class="headerlink" title="属性"></a>属性</h2><p>属性使用<a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/latest/command/get_property.html"><code>get_property</code></a>和<a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/latest/command/set_property.html"><code>set_property</code></a>进行取值和设值，另外也有<a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/latest/command/set_target_properties.html"><code>set_target_properties</code></a>一类把参数类型写在函数名的形式。</p>
+<h2 id="函数和宏"><a href="#函数和宏" class="headerlink" title="函数和宏"></a>函数和宏</h2><p>cmake中可以使用函数来重用代码，根据调用的形式，函数会获得长度为<code>ARGC</code>的参数列表<code>ARGV</code>，其中已命名的参数会赋值到对应变量中，未命名的参数列表赋值到<code>ARGN</code>中。由于函数没有返回值，因此通常使用<code>set($&#123;output_variable&#125; value PARENT_SCOPE)</code>的方法来在调用处的作用域中赋值。宏和函数类似，但宏本身没有作用域，会像C一样展开到调用处。</p>
+<h3 id="复杂参数"><a href="#复杂参数" class="headerlink" title="复杂参数"></a>复杂参数</h3><p>CMake中很多函数的参数非常复杂，需要使用类似于关键字参数的形式。这些参数通常是由<a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/latest/command/cmake_parse_arguments.html"><code>cmake_parse_arguments</code></a>负责解析，因此参数的顺序通常是不重要的。</p>
 <h2 id="命令和变量"><a href="#命令和变量" class="headerlink" title="命令和变量"></a>命令和变量</h2><p>CMake同样提供直接操作命令和变量的方法。这不只可以用于编译C，还可以用于生成代码，比如调用脚本生成一个C文件。</p>
 <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">add_custom_command</span>(OUTPUT main</span><br><span class="line">                   <span class="keyword">COMMAND</span> gcc main.c -o main</span><br><span class="line">                   DEPENDS main.c)</span><br><span class="line"></span><br><span class="line"><span class="keyword">add_custom_command</span>(OUTPUT main.c</span><br><span class="line">                   <span class="keyword">COMMAND</span> python generate-main.py</span><br><span class="line">                   DEPENDS generate-main.py)</span><br><span class="line"></span><br><span class="line"><span class="keyword">add_custom_target</span>(greet</span><br><span class="line">                  <span class="keyword">COMMAND</span> ./main</span><br><span class="line">                  DEPENDS main.c)</span><br></pre></td></tr></table></figure>
 <p>这样可以声明两个互相有依赖关系的命令，调用后者会生成main.c而调用前者会生成main。CMake（生成的项目）会根据声明的或自动判断的依赖来按顺序调用。</p>
 <p>除了<code>add_custom_command</code>，CMake还有一个类似的函数<code>add_custom_target</code>，用于指定一个命令，而不自动利用生成的文件判断依赖关系，因此可以指定简单的命令向控制台输出或运行程序。</p>
-<h2 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h2><p>同样地，CMake也提供利用变量来指定参数的方法，可以通过配置环境变量<code>CFLAGS</code>或者CMake变量<code>CMAKE_C_FLAGS</code>来达到和上面例子一样的效果。CMake默认生成的编译指令其实是一个类似于模板，具体内容会填入这些选项设定的参数。</p>
+<h2 id="变量-1"><a href="#变量-1" class="headerlink" title="变量"></a>变量</h2><p>同样地，CMake也提供利用变量来指定参数的方法，可以通过配置环境变量<code>CFLAGS</code>或者CMake变量<code>CMAKE_C_FLAGS</code>来达到和上面例子一样的效果。CMake默认生成的编译指令其实是一个类似于模板，具体内容会填入这些选项设定的参数。</p>
 <p>CMake中定义一个变量有多种方法：</p>
 <ul>
 <li>调用时<code>cmake</code>时添加选项<code>-DFLAG=value</code>，如<code>cmake -D CMAKE_CXX_FLAGS=-Ofast</code></li>
@@ -101,7 +148,7 @@
 <h3 id="宏"><a href="#宏" class="headerlink" title="宏"></a>宏</h3><p>可以看到上述的函数的例子中，CMake的函数并没有返回值，而实际的使用中我们会希望获取函数计算的结果，一个简单的方法是利用宏。宏和函数不同，函数体中可以定义新的变量，这些变量的作用域可以不超出函数体；而宏中定义的变量会在调用宏的作用域可见，如果知道这些变量的名字，实际上可以用来返回结果。</p>
 <p>下面的例子定义了宏<code>compile</code>，这个宏生成编译<code>source_file</code>的命令，并定义一个变量<code>output_file</code>，用于这个文件编译结果的路径。</p>
 <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义</span></span><br><span class="line"><span class="keyword">macro</span>(compile source_file)</span><br><span class="line">  <span class="keyword">get_filename_component</span>(output_file <span class="variable">$&#123;source_file&#125;</span> NAME_WE)</span><br><span class="line">  <span class="keyword">set</span> (output_file <span class="variable">$&#123;output_file&#125;</span>.o)</span><br><span class="line">  <span class="keyword">add_custom_command</span>(OUTPUT <span class="variable">$&#123;output_file&#125;</span></span><br><span class="line">                     <span class="keyword">COMMAND</span> <span class="variable">$&#123;C_COMPILER&#125;</span> -c <span class="variable">$&#123;source_file&#125;</span></span><br><span class="line">                     DEPENDS <span class="variable">$&#123;source_file&#125;</span>)</span><br><span class="line"><span class="keyword">endmacro</span>()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 调用</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<h3 id="属性"><a href="#属性" class="headerlink" title="属性"></a>属性</h3><p>set_property get_property</p>
+<h3 id="属性-1"><a href="#属性-1" class="headerlink" title="属性"></a>属性</h3><p>set_property get_property</p>
 <p>target_compile_options</p>
 <p>可以灵活地设定全局或者只针对若干目标指定，可以避免副作用互相影响。</p>
 <h3 id="生成器表达式（generator-expression）"><a href="#生成器表达式（generator-expression）" class="headerlink" title="生成器表达式（generator expression）"></a>生成器表达式（generator expression）</h3><p>生成器表达式是CMake中一种特殊的函数，特点是可以获取表达式的语境信息，不需要特意传入参数，比如可以根据语境确定当前的语言。</p>
@@ -196,9 +243,11 @@
   
     <li><a href="/tags/CMake/">CMake</a><small>5</small></li>
   
+    <li><a href="/tags/Julia/">Julia</a><small>1</small></li>
+  
     <li><a href="/tags/julia/">julia</a><small>2</small></li>
   
-    <li><a href="/tags/编程/">编程</a><small>10</small></li>
+    <li><a href="/tags/编程/">编程</a><small>11</small></li>
   
     <li><a href="/tags/读书笔记/">读书笔记</a><small>4</small></li>
   
