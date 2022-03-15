@@ -46,6 +46,52 @@
 </header>
   <div id="content" class="inner">
     <div id="main-col" class="alignleft"><div id="wrapper">
+  <article id="post-PyTest及CI模板" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time class="dt-published" datetime="2021-11-30T14:23:01.000Z"><a href="/2021/11/30/PyTest及CI模板/">2021-11-30</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2021/11/30/PyTest及CI模板/">PyTest及CI模板</a></h1>
+  
+
+    </header>
+    <div class="e-content entry" itemprop="articleBody">
+      
+        <h2 id="pytest模板"><a href="#pytest模板" class="headerlink" title="pytest模板"></a>pytest模板</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">project&#x2F;</span><br><span class="line">    module&#x2F;</span><br><span class="line">        __init__.py - 空</span><br><span class="line">        main.py</span><br><span class="line">    tests&#x2F;</span><br><span class="line">        test_XXX.py</span><br><span class="line">    conftest.py      - 空</span><br></pre></td></tr></table></figure>
+<p>其中<strong>main.py</strong>为普通的python模组代码，<strong>test_XXX.py</strong>内容为：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> module.main</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_xxx1</span>():</span></span><br><span class="line">    <span class="keyword">assert</span> module.main.xxx() == <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>使用指令<code>pytest</code>即可运行测试，pytest会自动将<strong>conftest.py</strong>所在路径加入搜索路径。</p>
+<h3 id="test-fixture"><a href="#test-fixture" class="headerlink" title="test fixture"></a>test fixture</h3><p>fixture是测试的资源，在测试函数中名字为某一fixture的参数会被自动填上对应的函数的返回值。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pytest</span><br><span class="line"></span><br><span class="line"><span class="meta">@pytest.fixture</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">one</span>():</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span></span><br><span class="line"></span><br><span class="line">def test_one(one);</span><br><span class="line">    <span class="keyword">assert</span> one == <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<h2 id="GitHub-Actions模板"><a href="#GitHub-Actions模板" class="headerlink" title="GitHub Actions模板"></a>GitHub Actions模板</h2><p>此模板要求使用pipenv来管理包。创建文件<strong>.github/workflows/app.yaml</strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">name:</span> <span class="string">PyTest</span></span><br><span class="line"><span class="attr">on:</span> <span class="string">push</span></span><br><span class="line"></span><br><span class="line"><span class="attr">jobs:</span></span><br><span class="line">  <span class="attr">test:</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">windows-latest</span></span><br><span class="line">    <span class="attr">timeout-minutes:</span> <span class="number">10</span></span><br><span class="line"></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Check</span> <span class="string">out</span> <span class="string">repository</span> <span class="string">code</span></span><br><span class="line">        <span class="attr">uses:</span> <span class="string">actions/checkout@v2</span></span><br><span class="line"></span><br><span class="line">      <span class="comment"># Setup Python (faster than using Python container)</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Setup</span> <span class="string">Python</span></span><br><span class="line">        <span class="attr">uses:</span> <span class="string">actions/setup-python@v2</span></span><br><span class="line">        <span class="attr">with:</span></span><br><span class="line">          <span class="attr">python-version:</span> <span class="string">&quot;3.x&quot;</span></span><br><span class="line"></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Install</span> <span class="string">pipenv</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line">          <span class="string">python</span> <span class="string">-m</span> <span class="string">pip</span> <span class="string">install</span> <span class="string">--upgrade</span> <span class="string">pipenv</span> <span class="string">wheel</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">id:</span> <span class="string">cache-pipenv</span></span><br><span class="line">        <span class="attr">uses:</span> <span class="string">actions/cache@v1</span></span><br><span class="line">        <span class="attr">with:</span></span><br><span class="line">          <span class="attr">path:</span> <span class="string">~/.local/share/virtualenvs</span></span><br><span class="line">          <span class="attr">key:</span> <span class="string">$&#123;&#123;</span> <span class="string">runner.os</span> <span class="string">&#125;&#125;-pipenv-$&#123;&#123;</span> <span class="string">hashFiles(&#x27;**/Pipfile.lock&#x27;)</span> <span class="string">&#125;&#125;</span></span><br><span class="line"></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Install</span> <span class="string">dependencies</span></span><br><span class="line">        <span class="attr">if:</span> <span class="string">steps.cache-pipenv.outputs.cache-hit</span> <span class="type">!=</span> <span class="string">&#x27;true&#x27;</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line">          <span class="string">pipenv</span> <span class="string">install</span> <span class="string">--deploy</span> <span class="string">--dev</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Run</span> <span class="string">test</span> <span class="string">suite</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line">          <span class="string">pipenv</span> <span class="string">run</span> <span class="string">test</span> <span class="string">-v</span></span><br></pre></td></tr></table></figure>
+<p>对应的徽章是</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[<span class="string">![CI</span>](<span class="link">https://github.com/用户名/仓库/actions/workflows/app.yaml/badge.svg</span>)](<span class="link">https://github.com/用户名/仓库/actions/workflows/app.yaml/</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="VSCode"><a href="#VSCode" class="headerlink" title="VSCode"></a>VSCode</h2><p>参见：<a target="_blank" rel="noopener" href="https://code.visualstudio.com/docs/python/testing">https://code.visualstudio.com/docs/python/testing</a></p>
+<h2 id="coverage"><a href="#coverage" class="headerlink" title="coverage"></a>coverage</h2><p>总之就是想办法添加<code>pytest-cov</code>库，然后运行<code>pytest --cov=目录 --cov-report=xml</code>然后上传，可以直接在上面的<strong>app.yaml</strong>后面加上</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Generate</span> <span class="string">coverage</span> <span class="string">report</span></span><br><span class="line">  <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line">    <span class="string">pipenv</span> <span class="string">run</span> <span class="string">pytest</span> <span class="string">--cov=./</span> <span class="string">--cov-report=xml</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> <span class="attr">name:</span> <span class="string">&quot;Upload coverage to Codecov&quot;</span></span><br><span class="line">  <span class="attr">uses:</span> <span class="string">codecov/codecov-action@v2</span></span><br><span class="line">  <span class="attr">with:</span></span><br><span class="line">    <span class="attr">fail_ci_if_error:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">token:</span> <span class="string">$&#123;&#123;</span> <span class="string">secrets.CODECOV_TOKEN</span> <span class="string">&#125;&#125;</span> <span class="comment"># not required for public repos</span></span><br></pre></td></tr></table></figure>
+<p>目录是<code>./</code>的时候似乎测试文件也会被统计到，或许改成具体的项目会更好。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
   <article id="post-GoogleTest模版" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   
   <div class="post-content">
@@ -678,11 +724,11 @@ R(T)\geq O(\sqrt{KT})</script><p>可见之前的收益下界已经非常好了�
   
     <li><a href="/tags/C/">C++</a><small>1</small></li>
   
-    <li><a href="/tags/CMake/">CMake</a><small>5</small></li>
+    <li><a href="/tags/CMake/">CMake</a><small>6</small></li>
   
     <li><a href="/tags/Julia/">Julia</a><small>3</small></li>
   
-    <li><a href="/tags/编程/">编程</a><small>11</small></li>
+    <li><a href="/tags/编程/">编程</a><small>12</small></li>
   
     <li><a href="/tags/读书笔记/">读书笔记</a><small>4</small></li>
   

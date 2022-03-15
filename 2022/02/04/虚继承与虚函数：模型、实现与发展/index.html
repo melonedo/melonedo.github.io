@@ -146,6 +146,7 @@ C++的对象模型需求分析对象指的是定义了行为，并可以储存�
 <h5 id="重写子对象虚表也包含虚函数带来的优化"><a href="#重写子对象虚表也包含虚函数带来的优化" class="headerlink" title="重写子对象虚表也包含虚函数带来的优化"></a>重写子对象虚表也包含虚函数带来的优化</h5><p>至此可以解释前面为何重写了虚函数的虚表中要包含对应的虚函数。如果虚函数只列在声明虚函数的基子对象的虚表中，那么当前子对象就是最终重写了虚函数f的子对象，而声明f的实基不是首基，在调用前需要首先加上偏移调整<code>this</code>保证第一个不变量，而调用后又要把<code>this</code>减去同样的偏移，又回到了最初的<code>this</code>。</p>
 <p>这上面的分析都只针对对象完整建立后的行为，C++的对象未构造完时也可以使用虚函数，但此时虚函数重写的结果可能和完整对象的结果不同，又需要额外的复杂度，有兴趣直接参考原文。</p>
 <h2 id="MSVC中实现方法"><a href="#MSVC中实现方法" class="headerlink" title="MSVC中实现方法"></a>MSVC中实现方法</h2><p>虽然MSVC没有公开他的ABI，但通过未公开的编译指令<code>/d1reportAllClassLayout</code>和<code>/d1reportSingleClassLayoutXXX</code>以及反汇编可以判断出使用的ABI。作为比较，这里也简单说明。</p>
+<p>OpenRCE has some material on this: <a target="_blank" rel="noopener" href="http://www.openrce.org/articles/full_view/23">Reversing Microsoft Visual C++ Part II: Classes, Methods and RTTI</a></p>
 <h3 id="虚表-1"><a href="#虚表-1" class="headerlink" title="虚表"></a>虚表</h3><p>虚表中的内容肯定大差不差，主要的区别是MSVC中虚基偏移单独有一个指针<code>vbptr</code>，和虚函数（应该还包括RTTI等其他信息）的虚表指针<code>vfptr</code>不共用。同时，MSVC由于虚函数调用的不变量不同，不做<a href="#重写子对象虚表也包含虚函数带来的优化">重写子对象虚表也包含虚函数带来的优化</a>，因此虚函数只位于声明了这个函数的子对象的虚表中。</p>
 <h3 id="虚函数调用"><a href="#虚函数调用" class="headerlink" title="虚函数调用"></a>虚函数调用</h3><p>仍假设调用子对象A中调用B中声明的虚函数f，f最终在C中重写。f只存在B的虚表中，因此不存在选择重写对象D的可能。MSVC在虚函数调用过程中的不变量和Itanium ABI不同：</p>
 <ul>
@@ -240,11 +241,11 @@ C++的对象模型需求分析对象指的是定义了行为，并可以储存�
   
     <li><a href="/tags/C/">C++</a><small>1</small></li>
   
-    <li><a href="/tags/CMake/">CMake</a><small>5</small></li>
+    <li><a href="/tags/CMake/">CMake</a><small>6</small></li>
   
     <li><a href="/tags/Julia/">Julia</a><small>3</small></li>
   
-    <li><a href="/tags/编程/">编程</a><small>11</small></li>
+    <li><a href="/tags/编程/">编程</a><small>12</small></li>
   
     <li><a href="/tags/读书笔记/">读书笔记</a><small>4</small></li>
   
