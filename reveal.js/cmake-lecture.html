@@ -29,18 +29,28 @@
             .small-code + pre code {
                 max-height: 200px;
             }
+			button {
+                font-size: 1em;
+            }
 		</style>
 	</head>
 	<body>
 		<div class="reveal">
 			<div class="slides">
 				<section>
+					<span style="float: right; font-size: 1em;">
+                        <button onclick="Reveal.configure({width: 1080, height:1080})">竖屏</button>
+                        <button onclick="console.log('hello');Reveal.configure({width: 1920, height:1080});">横屏</button>
+                    </span>
 					<h2 id="nocaps">现代CMake入门</h2>
 					<hr>
 					<p>Tongji TOSA</p>
-					<p>曾富楠〔<a href="melonedo.github.io">melonedo.github.io</a>〕</p>
+					<p>曾富楠〔<a href="https://melonedo.github.io">melonedo.github.io</a>〕</p>
                     <p>文章：<a href="https://melonedo.github.io/2022/03/14/%E7%8E%B0%E4%BB%A3CMake/">现代CMake入门</a></p>
                     <p>仓库：<a href="https://github.com/melonedo/cmake-lecture">melonedo/cmake-lecture</a></p>
+                    <p>讲义：<a href="https://melonedo.github.io/reveal.js/cmake-lecture.html">melonedo.github.io/reveal.js/cmake-lecture.html</a></p>
+                    <p>↓讲义二维码↓</p>
+                    <img src="qrcode.png" alt="二维码" style="border: 5px solid #fff;">
 				</section>
 				<section data-markdown
 						 data-separator="^-{3}$"
@@ -158,7 +168,7 @@ CMake中函数没有返回值，参数只能接收一大堆字符串，不能搞
 
 CMake中的对象包括了全局（GLOBAL），目录（DIRECTORY），目标（TARGET）等。
 
----
++++
 
 # CMake项目
 
@@ -654,7 +664,7 @@ C项目终于有办法直接导出编译要求了！！！
 
 ---
 
-## 配置（configure）、导出（export）和编译（build）
+## configure, export and build
 
 CMake项目整个编译的流程是分成明显的三步的
 
@@ -666,9 +676,21 @@ CMake项目整个编译的流程是分成明显的三步的
 
 第三步同样不能运行CMake DSL，因此不建议使用`file(GLOB)`之类的方法获取一个文件夹中所有的文件名，而是一个个列出。
 
++++
+
+### Configuration
+
+开发程序时会希望在调试和部署时使用不同的编译选项，如调试时需要带上符号文件，且少开优化，而部署时尽可能优化且尽可能减小文件体积。这种不同用途下需要的不同编译指令被抽象为configuration。
+
+- Ninja和VS原生支持configuration，这时候CMake会为同一个项目导出若干个不同的版本。`cmake --build build --config XXX`可以指定configuration。
+- make不支持configuration，必须在CMake调用时用`CMAKE_BUILD_TYPE`指定configuration。
+
 ---
 
 # 谢谢大家！
+
+CMake官方文档：[cmake.org/cmake/help/latest/index.html](https://cmake.org/cmake/help/latest/index.html)
+
 						 </textarea>
 				</section>
 			</div>
