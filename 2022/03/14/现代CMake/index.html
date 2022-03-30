@@ -6,8 +6,8 @@
   <title>现代CMake入门 | melonedo&#39;s blog</title>
   <meta name="author" content="melonedo">
   
-  <meta name="description" content="代码仓库：melonedo/cmake-lecture
-C项目由于庞大的历史遗留问题，C（或C++）项目的编译是老大难问题。吸取了C的教训，如go、rust一类新的语言都会尽可能地把编译程序的方法标准化。然而C的标准仅仅确定了本身的语言，对于代码如何编译为二进制文件、不同的二进制文件间如何复用等，只">
+  <meta name="description" content="代码仓库：melonedo/cmake-lecture讲义：现代CMake入门
+C项目由于庞大的历史遗留问题，C（或C++）项目的编译是老大难问题。吸取了C的教训，如go、rust一类新的语言都会尽可能地把编译程序的方法标准化。然而C的标准仅仅确定了本身的语言，对于代码如何编译为二进制文件、不同的二">
   
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -64,21 +64,22 @@ C项目由于庞大的历史遗留问题，C（或C++）项目的编译是老大
     </header>
     <div class="e-content entry" itemprop="articleBody">
       
-        <p>代码仓库：<a target="_blank" rel="noopener" href="https://github.com/melonedo/cmake-lecture">melonedo/cmake-lecture</a></p>
+        <p>代码仓库：<a target="_blank" rel="noopener" href="https://github.com/melonedo/cmake-lecture">melonedo/cmake-lecture</a><br>讲义：<a href="/reveal.js/cmake-lecture.html">现代CMake入门</a></p>
 <h1 id="C项目"><a href="#C项目" class="headerlink" title="C项目"></a>C项目</h1><p>由于庞大的历史遗留问题，C（或C++）项目的编译是老大难问题。吸取了C的教训，如go、rust一类新的语言都会尽可能地把编译程序的方法标准化。然而C的标准仅仅确定了本身的语言，对于代码如何编译为二进制文件、不同的二进制文件间如何复用等，只能借由C的霸主地位，成为操作系统/编译器的“基础知识”。</p>
 <p>通常一个C项目包括以下几个部分：</p>
 <ul>
 <li>头文件<code>.h</code>：头文件是项目内部或者项目外部调用API的接口说明。</li>
 <li>源文件<code>.c</code>：源文件是项目接口的实现方法，二进制文件的来源。</li>
 <li>依赖：项目需要依赖的外部库，通常包括头文件和源文件。</li>
-<li>编译指令：这个项目需要的头文件的路径、源文件的路径、依赖的路径以及编译需要的特殊方法，都需要在编译指令中给出。</li>
+<li>编译指令：这个项目需要的头文件的路径、源文件的路径、依赖的路径以及编译需要的特殊要求，都需要在编译指令中给出。</li>
 </ul>
-<p>C项目生成的结果无非两种：可执行文件和库。除非是临时调试，可执行文件和库最终都将会被打包分发到最终用户的电脑中。对于可执行文件来说，代码是无关紧要的，我们只要保证拥有二进制文件即可，也就是需要分发可执行文件本身及依赖（或者给出安装依赖的方法）。而库的最终用户也还是其他的码农，因此需要包括对应的头文件及编译指令，也就是需要分发公共头文件、二进制文件、依赖和编译指令。在C中源代码不直接分发，而是转换为二进制文件再分发。</p>
-<h2 id="管理C项目"><a href="#管理C项目" class="headerlink" title="管理C项目"></a>管理C项目</h2><p>管理这样一个C项目的方法也是多如牛毛。使用Windows的项目中经常会使用Visual Studio的项目进行管理，而*nix上的项目很多使用autoconf、make等工具管理，而各种IDE也都有自己的项目格式。由于上述的混乱局面，新世纪出现了cmake、meson、ninja、xmake等一系列工具用于为上述复杂的项目格式再提供一个抽象层，目前推广最成功的是CMake。</p>
+<p>C项目生成的结果无非两种：可执行文件和库。除非是临时调试，可执行文件和库最终都将会被打包分发到最终用户的电脑中。对于可执行文件来说，代码是无关紧要的，我们只要保证拥有二进制文件即可，也就是需要分发可执行文件本身及依赖（或者给出安装依赖的方法）。而库的最终用户也还是其他的码农，因此需要包括对应的头文件及编译指令，也就是需要分发公共头文件、二进制文件、依赖和编译指令。</p>
+<p>源文件通常不直接分发，而是编译为静态或动态链接库再分发。对于使用者，这两种库的区别主要是静态链接库需要的部分会被复制到目标文件中，而动态链接库需要把库本身随着目标一同分发。</p>
+<h2 id="管理C项目"><a href="#管理C项目" class="headerlink" title="管理C项目"></a>管理C项目</h2><p>管理这样一个C项目的方法也是多如牛毛。使用Windows的项目中经常会使用Visual Studio的项目进行管理，而*nix上的项目很多使用autoconf、make等工具管理，而各种IDE也都有自己的项目格式。由于上述的混乱局面，新世纪出现了CMake、meson、ninja、xmake等一系列工具用于为上述复杂的项目格式再提供一个抽象层，目前推广最成功的是CMake。</p>
 <p>CMake并不直接调用编译器，而只是提供一个描述C项目的DSL。根据一个项目编译要求的描述，CMake调用Generator生成一个可供VS、make、Xcode等编译管理工具使用的项目，再用编译。接受CMake仅作为一个抽象层这一点对于理解CMake是非常关键的，虽然CMake有一个图灵完备的DSL，但是这个DSL仅仅是生成项目，而不能直接在项目中执行。</p>
 <h1 id="CMake基本语法"><a href="#CMake基本语法" class="headerlink" title="CMake基本语法"></a><a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/v3.23/manual/cmake-language.7.html">CMake基本语法</a></h1><h2 id="字符串"><a href="#字符串" class="headerlink" title="字符串"></a><a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/v3.23/manual/cmake-language.7.html#command-arguments">字符串</a></h2><p>和常见shell类似，cmake中基本的数据类型只有字符串。字符串总是作为函数的参数，有三种表示方法，分别是<code>无引号参数</code>、<code>&quot;引号参数&quot;</code>和<code>[[方括号参数]]</code>，各自有不同的语法，不细说。和shell类似但和C等常见的语言不同，<code>name</code>仅仅代表一个字符串，对应<code>&quot;name&quot;</code>或者<code>[[name]]</code>，而不是一个变量的引用。</p>
-<h2 id="变量和环境变量"><a href="#变量和环境变量" class="headerlink" title="变量和环境变量"></a><a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/v3.23/manual/cmake-language.7.html#variables">变量</a>和<a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/v3.23/manual/cmake-language.7.html#command-arguments">环境变量</a></h2><p>变量和环境变量（曾）是CMake中非常重要的概念，使用<code>set</code>赋值，用<code>&quot;前缀$&#123;变量&#125;后缀&quot;</code>的形式可以把前缀、变量、后缀的内容合到一起。要注意的是，无引号参数<code>$&#123;变量&#125;</code>的形式会把变量当作一个<a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/v3.23/manual/cmake-language.7.html#lists">列表</a>，各个成员作为多个参数，即splat。因此最好使用<code>&quot;$&#123;变量&#125;&quot;</code>的形式防止一不小心变量被当成列表。</p>
-<h2 id="函数和宏"><a href="#函数和宏" class="headerlink" title="函数和宏"></a><a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/v3.23/command/function.html">函数</a>和<a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/v3.23/command/macro.html">宏</a></h2><p>和常见的语言一样，函数和宏是CMake中代码复用的方法。CMake中函数的特点是没有返回值，参数只能接收一大堆字符串，不能搞函数式什么的（直到2020年的3.18才有<a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/v3.23/command/cmake_language.html#calling-commands">CALL</a>的玩法）。要返回东西，可以用<code>set($&#123;返回的变量名&#125; PARENT_SCOPE)</code>或宏来解决。宏和函数的区别只是宏本身没有作用域，返回直接可以直接<code>set</code>，但中间变量也会泄露到调用函数中。函数调用不区分大小写。</p>
+<h2 id="变量和环境变量"><a href="#变量和环境变量" class="headerlink" title="变量和环境变量"></a><a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/v3.23/manual/cmake-language.7.html#variables">变量</a>和<a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/v3.23/manual/cmake-language.7.html#command-arguments">环境变量</a></h2><p>变量和环境变量（曾）是CMake中非常重要的概念，使用<code>set</code>赋值，用<code>&quot;前缀$&#123;变量名&#125;后缀&quot;</code>的形式可以把前缀、变量、后缀的内容连接为一个字符串。要注意的是，无引号参数<code>$&#123;变量&#125;</code>的形式会把变量当作一个<a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/v3.23/manual/cmake-language.7.html#lists">列表</a>，各个成员作为多个参数，即splat。因此最好使用<code>&quot;$&#123;变量&#125;&quot;</code>的形式防止一不小心变量被当成列表。</p>
+<h2 id="函数和宏"><a href="#函数和宏" class="headerlink" title="函数和宏"></a><a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/v3.23/command/function.html">函数</a>和<a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/v3.23/command/macro.html">宏</a></h2><p>和常见的语言一样，函数和宏是CMake中代码复用的方法。CMake中函数的特点是没有返回值，参数只能接收一大堆字符串，不能搞函数式什么的（直到2020年的3.18版本才有<a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/v3.23/command/cmake_language.html#calling-commands">CALL</a>的玩法）。要返回东西，可以用<code>set($&#123;返回的变量名&#125; PARENT_SCOPE)</code>或宏来解决。宏和函数的区别只是宏本身没有作用域，返回直接可以直接<code>set</code>，但中间变量也会泄露到调用函数中。函数调用不区分大小写。</p>
 <h3 id="参数格式"><a href="#参数格式" class="headerlink" title="参数格式"></a>参数格式</h3><p>CMake中函数做的事情远远比通用编程语言中复杂，参数的格式也非常地繁复。因此CMake提供了一个标准的参数解析器<a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/latest/command/cmake_parse_arguments.html">cmake_parse_arguments</a>，即除了前几个按照顺序的参数外，都不需要按照顺序给出，且参数间通过一些关键词分隔，没有特殊的语法。</p>
 <h2 id="对象和属性"><a href="#对象和属性" class="headerlink" title="对象和属性"></a>对象和属性</h2><p>虽然属性在CMake 3.0开始就已经实装，并成为现代CMake推荐使用的配置方法，很多新的特性也只支持属性，但很多复古的教程中还没有普及属性，因此本文将重点介绍属性。</p>
 <p>一个对象的属性使用<a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/v3.23/command/set_property.html">set_property</a>赋值，并使用<a target="_blank" rel="noopener" href="https://cmake.org/cmake/help/v3.23/command/get_property.html">get_property</a>获取。CMake中的对象包括了全局（GLOBAL），目录（DIRECTORY），目标（TARGET）等，如指定生成的VS解决方案的默认启动项可用<code>set_property(DIRECTORY &quot;$&#123;PROJECT_SOURCE_DIR&#125;&quot; PROPERTY VS_STARTUP_PROJECT main)</code>。</p>

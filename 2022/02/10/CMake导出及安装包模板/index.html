@@ -6,8 +6,9 @@
   <title>CMake导出及安装包模板 | melonedo&#39;s blog</title>
   <meta name="author" content="melonedo">
   
-  <meta name="description" content="生成库目录结构：
-12345678910eval_add├──CMakeLists.txt├──cmake│  ├──installer.cmake│  └──EvalAddConfig.cmake├──include│  └──eval_add│     └──eval_add.h└──sourc">
+  <meta name="description" content="代码：melonedo/cmake-lecture/export
+生成库目录结构：
+12345678910eval_add├──CMakeLists.txt├──cmake│  ├──installer.cmake│  └──EvalAddConfig.cmake├──include│  └──ev">
   
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -64,7 +65,8 @@
     </header>
     <div class="e-content entry" itemprop="articleBody">
       
-        <h2 id="生成库"><a href="#生成库" class="headerlink" title="生成库"></a>生成库</h2><p>目录结构：</p>
+        <p>代码：<a target="_blank" rel="noopener" href="https://github.com/melonedo/cmake-lecture/tree/main/export">melonedo/cmake-lecture/export</a></p>
+<h2 id="生成库"><a href="#生成库" class="headerlink" title="生成库"></a>生成库</h2><p>目录结构：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">eval_add</span><br><span class="line">├──CMakeLists.txt</span><br><span class="line">├──cmake</span><br><span class="line">│  ├──installer.cmake</span><br><span class="line">│  └──EvalAddConfig.cmake</span><br><span class="line">├──include</span><br><span class="line">│  └──eval_add</span><br><span class="line">│     └──eval_add.h</span><br><span class="line">└──source</span><br><span class="line">   └──eval_add.cpp</span><br></pre></td></tr></table></figure>
 <p>为了保证安装目录/usr/include头文件不会重名，可以给自己的项目单独建一个文件夹。这也反应在了目录结构中，即include下是eval_add，之后才是头文件。</p>
 <p>这里简单写一个依赖boost的库，头文件没有包含boost相关，所以<code>Boost::boost</code>也是private。</p>
