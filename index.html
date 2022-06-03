@@ -46,6 +46,51 @@
 </header>
   <div id="content" class="inner">
     <div id="main-col" class="alignleft"><div id="wrapper">
+  <article id="post-VS Code配置自定义C++调试" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time class="dt-published" datetime="2022-06-03T04:41:13.000Z"><a href="/2022/06/03/VS Code配置自定义C++调试/">2022-06-03</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2022/06/03/VS Code配置自定义C++调试/">VS Code配置自定义C++调试</a></h1>
+  
+
+    </header>
+    <div class="e-content entry" itemprop="articleBody">
+      
+        <p>方法是在<code>launch.json</code>中新增自己的调试，并在<code>tasks.json</code>中添加自定义的编译步骤。</p>
+<h2 id="自定义调试"><a href="#自定义调试" class="headerlink" title="自定义调试"></a>自定义调试</h2><p><a target="_blank" rel="noopener" href="https://code.visualstudio.com/docs/editor/debugging#_launch-configurations">tasks.json</a><br><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;version&quot;</span>: <span class="string">&quot;0.2.0&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;configurations&quot;</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">&quot;name&quot;</span>: <span class="string">&quot;My Custom Debug&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;cppvsdbg&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;request&quot;</span>: <span class="string">&quot;launch&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;program&quot;</span>: <span class="string">&quot;exe的路径&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;args&quot;</span>: [<span class="string">&quot;参数1&quot;</span>, <span class="string">&quot;参数2&quot;</span>],</span><br><span class="line">            <span class="attr">&quot;stopAtEntry&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">            <span class="attr">&quot;cwd&quot;</span>: <span class="string">&quot;你需要的cwd&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;environment&quot;</span>: [],</span><br><span class="line">            <span class="attr">&quot;externalConsole&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">            <span class="attr">&quot;preLaunchTask&quot;</span>: <span class="string">&quot;Build My Custom Debug&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>通过修改各个<a target="_blank" rel="noopener" href="https://code.visualstudio.com/docs/editor/debugging#_launchjson-attributes">属性</a>的值，可以改变常用的调试选项：</p>
+<ul>
+<li><code>name</code>：在调试菜单中展示的名字。</li>
+<li><code>type</code>：调试器，MSVC是<code>cppvsdbg</code>，gdb是<code>cppdbg</code>。</li>
+<li><code>program</code>：启动的程序。</li>
+<li><code>args</code>：命令行参数。</li>
+<li><code>cwd</code>：相对地址的参考点。</li>
+<li><code>preLaunchTask</code>：编译的命令，需要在<code>tasks.json</code>中说明。不需要编译可以删除此项。</li>
+</ul>
+<h2 id="自定义编译"><a href="#自定义编译" class="headerlink" title="自定义编译"></a>自定义编译</h2><p><a target="_blank" rel="noopener" href="https://code.visualstudio.com/docs/editor/tasks#vscode">tasks.json</a><br><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;version&quot;</span>: <span class="string">&quot;2.0.0&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;tasks&quot;</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">&quot;label&quot;</span>: <span class="string">&quot;Build My Custom Debug&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;shell&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;command&quot;</span>: <span class="string">&quot;编译命令&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;options&quot;</span>: &#123;</span><br><span class="line">                <span class="attr">&quot;cwd&quot;</span>: <span class="string">&quot;&quot;</span>,</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>另外在<code>options</code>下还可以配置<code>env</code>和<code>shell</code>。参考<a target="_blank" rel="noopener" href="https://code.visualstudio.com/docs/editor/tasks#_custom-tasks">Custom Tasks的文档</a>。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
   <article id="post-现代CMake" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   
   <div class="post-content">
@@ -684,52 +729,6 @@
 
 
 
-  <article id="post-julia画图拟合" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time class="dt-published" datetime="2021-12-03T11:24:46.000Z"><a href="/2021/12/03/julia画图拟合/">2021-12-03</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2021/12/03/julia画图拟合/">Julia画图拟合</a></h1>
-  
-
-    </header>
-    <div class="e-content entry" itemprop="articleBody">
-      
-        <h2 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h2><p>用Julia画图时经常会遇到偏差比较大，或者需要外推的数据，如：</p>
-<figure class="highlight julia"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">data = [</span><br><span class="line">    <span class="number">1</span> <span class="number">2</span> <span class="number">3</span> <span class="number">4</span></span><br><span class="line">    <span class="number">1</span> <span class="number">4</span>-<span class="number">1</span> <span class="number">9</span>+<span class="number">1</span> <span class="number">16</span></span><br><span class="line">]</span><br></pre></td></tr></table></figure>
-<p>这时候就只能先针对现有的数据拟合一个函数再画。</p>
-<h2 id="GLM-jl"><a href="#GLM-jl" class="headerlink" title="GLM.jl"></a>GLM.jl</h2><p>来源：<a target="_blank" rel="noopener" href="https://juliastats.org/GLM.jl/stable/examples/">Examples · GLM</a></p>
-<p>一种方法是用回归的方法拟合出模型再画图。回归的流程是先将数据装入<code>DataFrame</code>，给出结果后拟合。</p>
-<figure class="highlight julia"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">df = DataFrame(X=data[<span class="number">1</span>,:], Y=vec(data[<span class="number">2</span>,:]))</span><br><span class="line">ols = lm(<span class="meta">@formula</span>(Y ~ X), data)</span><br><span class="line">x1 = <span class="number">0</span>:<span class="number">.1</span>:<span class="number">5</span></span><br><span class="line">y1 = predict(ols, DataFrame(X=x1))</span><br></pre></td></tr></table></figure>
-<p><code>vec</code>用来转换类型，这里不用也行。</p>
-<p>最后用<code>plot!(x1, y1)</code>画图就好了。</p>
-<iframe src="/plots/plot-glm.html" width="630px" height="420px" frameborder="0" loading="lazy" allowfullscreen></iframe>
-<h2 id="Loess-jl"><a href="#Loess-jl" class="headerlink" title="Loess.jl"></a>Loess.jl</h2><p>来源：<a target="_blank" rel="noopener" href="https://github.com/JuliaStats/Loess.jl">GitHub - JuliaStats/Loess.jl: Local regression, so smooooth!</a></p>
-<p>如果不能用简单公式拟合，可以尝试用更加通用的Loess。但Loess的缺点是不能外推。</p>
-<figure class="highlight julia"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">model = loess(data[<span class="number">1</span>,:], data[<span class="number">2</span>,:], span=<span class="number">.7</span>)</span><br><span class="line">x2 = range(extrema(data[<span class="number">1</span>,:])...; step = <span class="number">0.1</span>)</span><br><span class="line">y2 = Loess.predict(model, x2)</span><br></pre></td></tr></table></figure>
-<iframe src="/plots/plot-loess.html" width="630px" height="420px" frameborder="0" loading="lazy" allowfullscreen></iframe>
-<h2 id="完整示例"><a href="#完整示例" class="headerlink" title="完整示例"></a>完整示例</h2><p><a href="/pluto/glm-and-loess.jl.html">glm-and-loess.jl</a></p>
-
-      
-    </div>
-    <footer>
-      
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -803,20 +802,5 @@
 })(jQuery);
 </script>
 
-<script type="text/x-mathjax-config">
-    MathJax.Hub.Config({
-        tex2jax: {
-            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
-            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
-            processEscapes: true
-        }
-    });
-    MathJax.Hub.Queue(function() {
-        var all = MathJax.Hub.getAllJax();
-        for (var i = 0; i < all.length; ++i)
-            all[i].SourceElement().parentNode.className += ' has-jax';
-    });
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"></script>
 </body>
 </html>

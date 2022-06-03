@@ -1,0 +1,199 @@
+<!DOCTYPE HTML>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  
+  <title>VS Code配置自定义C++调试 | melonedo&#39;s blog</title>
+  <meta name="author" content="melonedo">
+  
+  <meta name="description" content="方法是在launch.json中新增自己的调试，并在tasks.json中添加自定义的编译步骤。
+自定义调试tasks.json1234567891011121314151617&amp;#123;    &amp;quot;version&amp;quot;: &amp;quot;0.2.0&amp;quot;,    &amp;quot;co">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="VS Code配置自定义C++调试"/>
+  <meta property="og:site_name" content="melonedo&#39;s blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="melonedo&#39;s blog" type="application/atom+xml">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">melonedo&#39;s blog</a></h1>
+  <h2><a href="/">倘若星河昭见，能否有我在列</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div>
+</header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article id="post-VS Code配置自定义C++调试" class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time class="dt-published" datetime="2022-06-03T04:41:13.000Z"><a href="/2022/06/03/VS Code配置自定义C++调试/">2022-06-03</a></time>
+      
+      
+  
+    <h1 class="p-name title" itemprop="headline name">VS Code配置自定义C++调试</h1>
+  
+
+    </header>
+    <div class="e-content entry" itemprop="articleBody">
+      
+        <p>方法是在<code>launch.json</code>中新增自己的调试，并在<code>tasks.json</code>中添加自定义的编译步骤。</p>
+<h2 id="自定义调试"><a href="#自定义调试" class="headerlink" title="自定义调试"></a>自定义调试</h2><p><a target="_blank" rel="noopener" href="https://code.visualstudio.com/docs/editor/debugging#_launch-configurations">tasks.json</a><br><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;version&quot;</span>: <span class="string">&quot;0.2.0&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;configurations&quot;</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">&quot;name&quot;</span>: <span class="string">&quot;My Custom Debug&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;cppvsdbg&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;request&quot;</span>: <span class="string">&quot;launch&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;program&quot;</span>: <span class="string">&quot;exe的路径&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;args&quot;</span>: [<span class="string">&quot;参数1&quot;</span>, <span class="string">&quot;参数2&quot;</span>],</span><br><span class="line">            <span class="attr">&quot;stopAtEntry&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">            <span class="attr">&quot;cwd&quot;</span>: <span class="string">&quot;你需要的cwd&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;environment&quot;</span>: [],</span><br><span class="line">            <span class="attr">&quot;externalConsole&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">            <span class="attr">&quot;preLaunchTask&quot;</span>: <span class="string">&quot;Build My Custom Debug&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>通过修改各个<a target="_blank" rel="noopener" href="https://code.visualstudio.com/docs/editor/debugging#_launchjson-attributes">属性</a>的值，可以改变常用的调试选项：</p>
+<ul>
+<li><code>name</code>：在调试菜单中展示的名字。</li>
+<li><code>type</code>：调试器，MSVC是<code>cppvsdbg</code>，gdb是<code>cppdbg</code>。</li>
+<li><code>program</code>：启动的程序。</li>
+<li><code>args</code>：命令行参数。</li>
+<li><code>cwd</code>：相对地址的参考点。</li>
+<li><code>preLaunchTask</code>：编译的命令，需要在<code>tasks.json</code>中说明。不需要编译可以删除此项。</li>
+</ul>
+<h2 id="自定义编译"><a href="#自定义编译" class="headerlink" title="自定义编译"></a>自定义编译</h2><p><a target="_blank" rel="noopener" href="https://code.visualstudio.com/docs/editor/tasks#vscode">tasks.json</a><br><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;version&quot;</span>: <span class="string">&quot;2.0.0&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;tasks&quot;</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">&quot;label&quot;</span>: <span class="string">&quot;Build My Custom Debug&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;shell&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;command&quot;</span>: <span class="string">&quot;编译命令&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;options&quot;</span>: &#123;</span><br><span class="line">                <span class="attr">&quot;cwd&quot;</span>: <span class="string">&quot;&quot;</span>,</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>另外在<code>options</code>下还可以配置<code>env</code>和<code>shell</code>。参考<a target="_blank" rel="noopener" href="https://code.visualstudio.com/docs/editor/tasks#_custom-tasks">Custom Tasks的文档</a>。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+        
+  <div class="addthis addthis_toolbox addthis_default_style">
+    
+      <a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+    
+    
+      <a class="addthis_button_tweet"></a>
+    
+    
+      <a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+    
+    
+      <a class="addthis_button_pinterest_pinit" pi:pinit:layout="horizontal"></a>
+    
+    <a class="addthis_counter addthis_pill_style"></a>
+  </div>
+  <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js"></script>
+
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">Comments</h1>
+
+  
+      <div id="fb-root"></div>
+<script>
+  (function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=123456789012345";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+</script>
+
+<div class="fb-comments" data-href="https://melonedo.github.io/2022/06/03/VS%20Code%E9%85%8D%E7%BD%AE%E8%87%AA%E5%AE%9A%E4%B9%89C++%E8%B0%83%E8%AF%95/index.html" data-num-posts="5" data-width="840" data-colorscheme="light"></div>
+      
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="Search">
+    <input type="hidden" name="as_sitesearch" value="melonedo.github.io">
+  </form>
+</div>
+
+
+  
+
+  
+<div class="widget tag">
+  <h3 class="title">Tags</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/C/">C++</a><small>1</small></li>
+  
+    <li><a href="/tags/CMake/">CMake</a><small>6</small></li>
+  
+    <li><a href="/tags/Julia/">Julia</a><small>3</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>12</small></li>
+  
+    <li><a href="/tags/读书笔记/">读书笔记</a><small>4</small></li>
+  
+    <li><a href="/tags/随想/">随想</a><small>2</small></li>
+  
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2022 melonedo
+  
+</div>
+<div class="clearfix"></div></footer>
+  
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+
+
+<script src="/js/gallery.js"></script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>
