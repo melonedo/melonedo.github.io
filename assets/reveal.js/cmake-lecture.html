@@ -1,0 +1,718 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/black.css">
+
+		<!-- Theme used for syntax highlighted code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+
+		<style type="text/css">
+			.reveal .slides > section {
+				text-align:left;
+			}
+			#nocaps {
+				text-transform: none;
+			}
+			.reveal code {
+				font-family: 'Courier New', Courier, monospace;
+			}
+            .large-code + pre code {
+                max-height: 600px;
+            }
+            .small-code + pre code {
+                max-height: 200px;
+            }
+			button {
+                font-size: 1em;
+            }
+		</style>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<span style="float: right; font-size: 1em;">
+                        <button onclick="Reveal.configure({width: 1080, height:1080})">竖屏</button>
+                        <button onclick="Reveal.configure({width: 1920, height:1080});">横屏</button>
+                    </span>
+					<h2 id="nocaps">现代CMake入门</h2>
+					<hr>
+					<p>Tongji TOSA</p>
+					<p>曾富楠〔<a href="https://melonedo.github.io">melonedo.github.io</a>〕</p>
+                    <p>文章：<a href="https://melonedo.github.io/2022/03/14/%E7%8E%B0%E4%BB%A3CMake/">现代CMake入门</a></p>
+                    <p>仓库：<a href="https://github.com/melonedo/cmake-lecture">melonedo/cmake-lecture</a></p>
+                    <p>讲义：<a href="https://melonedo.github.io/reveal.js/cmake-lecture.html">melonedo.github.io/reveal.js/cmake-lecture.html</a></p>
+                    <p>↓讲义二维码↓</p>
+                    <img src="qrcode.png" alt="二维码" style="border: 5px solid #fff;">
+				</section>
+				<section data-markdown
+						 data-separator="^-{3}$"
+						 data-separator-vertical="^\+{3}$">
+						 <textarea data-template>
+## 目录
+
+- C项目与CMake
+- CMake基本语法
+- CMake生成可执行文件和库
+- CMake管理依赖
+
+---
+
+# C项目
+
+- <b>头文件`.h`</b>：项目内部或者项目外部调用API的接口说明。
+- <b>源文件`.c`</b>：项目接口的实现方法，二进制文件的来源。
+- <b>依赖</b>：项目需要依赖的外部库，通常包括头文件和源文件。
+- <b>编译指令</b>：这个项目需要的头文件的路径、源文件的路径、依赖的路径以及编译需要的特殊要求，都需要在编译指令中给出。
+
++++
+
+## C项目产物
+
+- 二进制文件（可执行文件和库）
+- 头文件直接
+- 源文件不分发
+- 编译指令和依赖想办法分发
+
+可执行文件（executable）和库（library）在CMake中都称为目标（target），语法上区别不大。
+
++++
+
+## 分发C项目
+
+在常见的*nix项目中
+
+- 头文件和库可以打包分发
+- 编译指令写个文档或用`XX-config`的程序控制
+- 依赖通常自己想办法
+- 或者直接header only
+
+CMake项目可以直接将上述文件和编译要求同时打包。
+
+> 参考[CMake导出及安装包模板](https://melonedo.github.io/2022/02/10/CMake%E5%AF%BC%E5%87%BA%E5%8F%8A%E5%AE%89%E8%A3%85%E5%8C%85%E6%A8%A1%E6%9D%BF/)
+
++++
+
+## 管理C项目
+
+Visual Studio项目、autoconf & make、CMake、meson、ninja、xmake……
+
+CMake是最通用的，用于**描述**C项目，然后生成项目，由其他软件管理并编译。
+
+---
+
+# CMake基本语法
+
+由于当时最好的脚本语言是Tcl，CMake选择自己维护了一个类似于shell的DSL，这个DSL虽然是图灵完备的，但在很多方面和现在常见的编程语言差别非常大。
+
++++
+
+## [字符串](https://cmake.org/cmake/help/v3.23/manual/cmake-language.7.html#command-arguments)
+和常见shell类似，cmake中基本的数据类型只有字符串。字符串总是作为函数的参数，有三种表示方法，分别是
+- `无引号参数`
+- `"引号参数"`
+- `[[方括号参数]]`
+ 
+注意`name`仅仅代表一个字符串，对应`"name"`或者`[[name]]`，而不是一个变量的引用。
+
++++
+
+## [变量](https://cmake.org/cmake/help/v3.23/manual/cmake-language.7.html#variables)和[环境变量](https://cmake.org/cmake/help/v3.23/manual/cmake-language.7.html#command-arguments)
+
+使用`set`赋值，用`"前缀${变量名}后缀"`的形式可以把前缀、变量、后缀的内容连接为一个字符串。
+
+> 上述形式只是一个字符串，即变量名可以嵌套成：`${${prefix}_${name}}`
+
++++
+
+## [列表](https://cmake.org/cmake/help/v3.23/manual/cmake-language.7.html#lists)
+
+无引号参数`${变量}`的形式会把变量当作一个[列表](https://cmake.org/cmake/help/v3.23/manual/cmake-language.7.html#lists)，各个成员作为多个参数，即splat。
+
+因此最好使用`"${变量}"`的形式防止一不小心变量被当成列表。
+
++++
+
+## [函数](https://cmake.org/cmake/help/v3.23/command/function.html)和[宏](https://cmake.org/cmake/help/v3.23/command/macro.html)
+
+CMake中函数没有返回值，参数只能接收一大堆字符串，不能搞函数式。函数调用不区分大小写。
+
+函数没有返回值，但可以用`set(${返回的变量名} PARENT_SCOPE)`或宏来解决。
+
+宏和函数的区别只是宏本身没有作用域，返回直接可以直接`set`，但中间变量也会泄露到调用函数中。
+
+> 直到2020年的3.18版本才有[CALL](https://cmake.org/cmake/help/v3.23/command/cmake_language.html#calling-commands)的玩法
+
++++
+
+## 参数解析
+
+位置参数可以直接获取，非位置参数用`${ARGN}`。
+
+[`cmake_parse_arguments`](https://cmake.org/cmake/help/latest/command/cmake_parse_arguments.html)是标准的参数解析方法，用于将一些参数作为关键字解析函数的可选、位置不固定、数量可多可少的复杂参数。
+
++++
+
+## 对象和属性
+
+虽然属性在CMake 3.0开始就已经实装，并成为现代CMake推荐使用的配置方法，很多新的特性也只支持属性，但很多古老的教程中还没有普及属性。
+
+使用[`set_property`](https://cmake.org/cmake/help/v3.23/command/set_property.html)赋值，并使用[`get_property`](https://cmake.org/cmake/help/v3.23/command/get_property.html)获取。
+
+CMake中的对象包括了全局（GLOBAL），目录（DIRECTORY），目标（TARGET）等。
+
++++
+
+## CMake项目
+
+- 包括了CMakeLists.txt的文件夹代表一个CMake项目
+- 外部依赖、编译要求等通过环境变量或者命令行参数给出
+
+---
+
+# 生成可执行文件hello
+
+目录结构
+
+```text
+hello
+├──CMakeLists.txt
+└──source
+   └──hello.cpp
+```
+
+hello.cpp
+
+```c++
+#include <iostream>
+int main() { std::cout << "Hello!" << std::endl; }
+```
+
+CMakeLists.txt
+
+```cmake
+cmake_minimum_required(VERSION 3.0)
+project(hello LANGUAGES CXX)
+add_executable(hello source/hello.cpp)
+```
+
++++
+
+## 生成可执行文件hello
+
+```cmake [1]
+cmake_minimum_required(VERSION 3.0)
+project(hello LANGUAGES CXX)
+add_executable(hello source/hello.cpp)
+```
+
+和C++一样，CMake保持完全的向后兼容性。完全兼容并不意味着所有的功能不能更新，CMake还是会在每个版本丰富现有的功能。因此我们需要在一个CMakeLists.txt的最开头写上[`cmake_minimum_required`](https://cmake.org/cmake/help/v3.23/command/cmake_minimum_required.html)确定使用的版本。
+
++++
+
+## 生成可执行文件hello
+
+```cmake [2]
+cmake_minimum_required(VERSION 3.0)
+project(hello LANGUAGES CXX)
+add_executable(hello source/hello.cpp)
+```
+
+[`project`](https://cmake.org/cmake/help/v3.23/command/project.html)新建一个CMake项目。
+
+项目的名称`hello`会被用在IDE的项目名。
+
+参数`LANGUAGES`决定了启用的语言。可用的语言包括`C`、`CXX`、`CUDA`、`FORTRAN`等，默认启用`C`和`CXX`。
+
+> 仅通过在`LANGUAGES`中添加`CUDA`就可以编译CUDA程序，后面会展示
+
++++
+
+## 生成可执行文件hello
+
+```cmake [3]
+cmake_minimum_required(VERSION 3.0)
+project(hello LANGUAGES CXX)
+add_executable(hello source/hello.cpp)
+```
+
+[`add_executable`](https://cmake.org/cmake/help/v3.23/command/add_executable.html)添加一个可执行文件，并列出编译需要的源文件。
+
+在后面也可以用`target_sources`补充需要的源文件。
+
+---
+
+# 生成项目及编译
+
+至此我们已经说明了编译这个可执行文件的所有要求，可以开始编译了。
+
+最通用也最古老的编译指令是：
+
+```shell
+cd 项目的根目录
+mkdir build
+cd build
+# 生成项目
+cmake ..
+# 编译项目
+cmake --build .
+```
+
+除非特别指定，这样生成的项目和代码是完全隔离的，如果出错可以直接把整个build文件夹删除。
+
++++
+
+## 生成项目并编译-更精简的方法
+
+如果CMake版本在3.13以上，则可以使用`-B`参数避免新建文件夹和cd的麻烦：
+
+```shell
+# 生成项目
+cmake -B build # CMake 3.13
+# 编译项目
+cmake --build build
+```
+
++++
+
+## 生成项目并编译-使用原生工具
+
+生成了项目后，在Windows上，可以直接打开build文件夹中生成的解决方案（.sln），或者用下列指令
+
+```shell
+cmake --open build # CMake 3.11
+```
+
+在*nix上，可以直接用`make`
+
+```shell
+cd build
+make
+```
+
+---
+
+# 生成动态链接库libadd
+
+目录结构
+
+```text
+add
+├──CMakeLists.txt
+├──include
+|  └──add.h
+└──source
+   ├──add.c
+   ├──test-add.c
+   └──test-add.py
+```
+
+add.h
+
+```c
+#include "add_export.h"
+ADD_EXPORT int add(int a, int b);
+```
+
+add.c
+
+```c
+#include "add.h"
+int add(int a, int b) { return a + b; }
+```
+
++++
+
+## 生成动态链接库libadd
+
+CMakeLists.txt
+
+<!-- .element: class="large-code" -->
+
+```cmake
+cmake_minimum_required(VERSION 3.0)
+project(add LANGUAGES C)
+
+# 动态链接库本身
+add_library(add SHARED)
+target_sources(add PRIVATE source/add.c)
+target_include_directories(add PUBLIC include)
+
+# 处理DLL_EXPORT
+include(GenerateExportHeader)
+generate_export_header(add)
+target_include_directories(add PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+```
+
++++
+
+## 生成动态链接库libadd
+
+<!-- .element: class="small-code" -->
+
+```cmake [1-2]
+cmake_minimum_required(VERSION 3.0)
+project(add LANGUAGES C)
+
+# 动态链接库本身
+add_library(add SHARED)
+target_sources(add PRIVATE source/add.c)
+target_include_directories(add PUBLIC include)
+```
+
+标准的CMakeLists.txt开头。
+
++++
+
+## 生成动态链接库libadd
+
+<!-- .element: class="small-code" -->
+
+```cmake [4-7]
+cmake_minimum_required(VERSION 3.0)
+project(add LANGUAGES C)
+
+# 动态链接库本身
+add_library(add SHARED)
+target_sources(add PRIVATE source/add.c)
+target_include_directories(add PUBLIC include)
+
+# 处理DLL_EXPORT
+include(GenerateExportHeader)
+generate_export_header(add)
+target_include_directories(add PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+```
+
+指定动态链接库的名称、包含路径和源文件。[`add_library(SHARED)`](https://cmake.org/cmake/help/v3.23/command/add_library.html)已经表面了这个库是动态链接库，不需要再手动地指定`fPIC`之类的编译选项。
+
+> 把`SHARED`改成`STATIC`就生成静态库了
+
++++
+
+## 生成动态链接库libadd
+
+<!-- .element: class="small-code" -->
+
+```cmake [9-12]
+cmake_minimum_required(VERSION 3.0)
+project(add LANGUAGES C)
+
+# 动态链接库本身
+add_library(add SHARED)
+target_sources(add PRIVATE source/add.c)
+target_include_directories(add PUBLIC include)
+
+# 处理DLL_EXPORT
+include(GenerateExportHeader)
+generate_export_header(add)
+target_include_directories(add PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+```
+
+Windows中符号默认是不导出到DLL中的，而Linux是默认导出。这里我们用CMake生成一个`XXX_export.h`的头文件，声明`DLL_EXPORT`之类的宏。
+
+偷懒的时候可以把上述几行替换成
+```cmake
+set_target_properties(add PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+```
+这样默认导出所有符号，头文件中不再需要`ADD_EXPORT`。
+
+---
+
+## C中使用动态链接库libadd
+
+test-add.c
+```c
+#include "add.h"
+#include "stdio.h"
+int main() {
+    printf("%d\n", add(1, 2));
+}
+```
+
+CMakeList.txt中
+
+```cmake
+add_executable(test-add-c source/test-add.c)
+target_link_libraries(test-add-c PRIVATE add)
+```
+
+[`target_link_libraries`](https://cmake.org/cmake/help/v3.23/command/target_link_libraries.html)在CMake中是用于添加依赖。
+
+这里添加的依赖包括了一个C项目的所有部分，即包括了头文件、二进制文件、编译选项。
+
+`target_link_libraries(test-add PRIVATE add)`实际上把`add`的dll文件、头文件包含路径及其他需要编译选项都纳入了`test-add`的编译要求中。
+
++++
+
+## C++中使用动态链接库libadd
+
+test-add.cpp
+
+```c++
+#include <iostream>
+extern "C" {
+#include "add.h"
+}
+int main() {
+  std::cout << add(1, 2) << std::endl;
+}
+```
+
+CMakeList.txt中
+
+```cmake
+add_executable(test-add-cpp source/test-add.cpp)
+target_link_libraries(test-add-cpp PRIVATE add)
+```
+
+需要注意的是C++中使用C代码需要把C部分的声明用`extern "C" { }`包围，说明对应的代码使用C语言。
+
++++
+
+## Python中使用动态链接库libadd
+
+动态链接库可以被其他语言调用，比如在python中直接使用ctypes加载这个库
+
+```py
+from ctypes import CDLL, c_int
+libadd_path = r"$<TARGET_FILE:add>"
+libadd = CDLL(libadd_path)
+libadd.add.argtypes = [c_int, c_int]
+libadd.add.restype = c_int
+print(libadd.add(1,2))
+```
+
+由于在Windows环境下不易寻找dll，这里用[`file(GENERATE)`](https://cmake.org/cmake/help/v3.23/command/file.html#generate)硬编码了库的路径。
+
+CMakeList.txt中
+
+```cmake
+file(GENERATE 
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/test-add-$<CONFIG>.py 
+    INPUT ${CMAKE_CURRENT_SOURCE_DIR}/source/test-add.py)
+find_package(Python3 COMPONENTS Interpreter)
+add_custom_target(run-test-add-python
+    COMMAND Python3::Interpreter test-add-$<CONFIG>.py)
+```
+
+[`find_package(Python3)`](https://cmake.org/cmake/help/v3.23/module/FindPython3.html)用于找到python可执行文件。
+
+---
+
+# CMake showcase
+
+- CUDA
+- Boost
+- OpenCV
+
++++
+
+## CUDA
+
+博客：[利用CMake编译CUDA程序](https://melonedo.github.io/2021/12/08/%E5%88%A9%E7%94%A8cmake%E7%BC%96%E8%AF%91cuda%E7%A8%8B%E5%BA%8F/)
+
+添加了CUDA语言后，CUDA代码（.cu）和普通的C/C++没有区别。
+
+```cmake
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+project(cmake_and_cuda LANGUAGES CXX CUDA)
+add_executable(cuda-test calculate.cu main.cpp)
+# 指定显卡的架构，75代表图灵。
+set_target_properties(cuda-test PROPERTIES CUDA_ARCHITECTURES 75)
+```
+
+CUDA的头是utf-8的，在Windows上启用utf-8命令，不然有海量警告。
+
+```cmake
+add_library(enable_utf8 INTERFACE)
+if(MSVC)
+	# cmake的generator expression可以根据语言选择参数，编译c++时使用前者，CUDA使用后者
+    target_compile_options(enable_utf8 INTERFACE
+        $<$<BUILD_INTERFACE:$<COMPILE_LANGUAGE:CXX>>: /utf-8 >
+        $<$<BUILD_INTERFACE:$<COMPILE_LANGUAGE:CUDA>>: -Xcompiler=/utf-8 >
+    )
+endif()
+target_link_libraries(cuda-test PRIVATE enable_utf8)
+```
+
++++
+
+## Boost
+
+博客：[通过CMake调用Boost](https://melonedo.github.io/2022/02/07/%E9%80%9A%E8%BF%87CMake%E8%B0%83%E7%94%A8Boost/)
+
+```cmake
+cmake_minimum_required(VERSION 3.12)
+project(boost-test)
+find_package(Boost CONFIG REQUIRED COMPONENTS thread)
+
+add_executable(boost-test test.cpp)
+target_link_libraries(boost-test PRIVATE
+    Boost::thread 
+    Boost::disable_autolinking 
+    Boost::diagnostic_definitions)
+```
+
+需要使用`cmake ... -D Boost_ROOT=...`或者定义环境变量`Boost_DIR`指定Boost的位置。
+
++++
+
+## OpenCV
+
+OpenCV提供的只是两个变量，可以简单地包装成INTERFACE库的形式。
+
+```cmake
+find_package(OpenCV CONFIG REQUIRED)
+add_library(OpenCV INTERFACE)
+target_include_directories(OpenCV INTERFACE ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(OpenCV INTERFACE ${OpenCV_LIBS})
+```
+
+然后直接声明为依赖即可
+
+```cmake
+add_executable(opencv-test source/opencv-test.cpp)
+target_link_libraries(opencv-test OpenCV)
+```
+
+---
+
+# 依赖管理
+
+- 寻找依赖
+- 用继承管理依赖
+- 用变量管理依赖
+
++++
+
+## 寻找依赖
+
+[`find_package`](https://cmake.org/cmake/help/v3.23/command/find_package.html)函数用于寻找一个库，找到后将“返回”一系列的变量和目标用于使用这个库。
+
+- 如果这个库不分发`XXXConfig.cmake`，`find_package`尝试从模块搜索路径中寻找一个`FindXXX`的模块，由这个模块找到库。
+- 如果这个库导出了一个`XXXConfig.cmake`，`find_package`会从一系列的路径查找`XXXConfig.cmake`，运行这个脚本获得导出的内容。
+- 搜索时会用一系列的CMake变量或环境变量引导，或从系统路径搜索。
+- CMake 3.17以上可以用`--debug-find`选项观察这个寻找的过程。
+
++++
+
+## 用继承管理依赖
+
+CMake提供以下支持继承关系的命令：
+
+- [`target_compile_definitions`](https://cmake.org/cmake/help/v3.23/command/target_compile_definitions.html)：宏定义
+- [`target_compile_features`](https://cmake.org/cmake/help/v3.23/command/target_compile_features.html)：语言版本和特性
+- [`target_compile_options`](https://cmake.org/cmake/help/v3.23/command/target_compile_options.html)：编译指令
+- [`target_include_directories`](https://cmake.org/cmake/help/v3.23/command/target_include_directories.html)：包含路径
+- [`target_link_directories`](https://cmake.org/cmake/help/v3.23/command/target_link_directories.html)：链接库搜索路径
+- [`target_link_libraries`](https://cmake.org/cmake/help/v3.23/command/target_link_libraries.html)：链接的库或者依赖
+- [`target_link_options`](https://cmake.org/cmake/help/v3.23/command/target_link_options.html)：链接指令
+- [`target_precompile_headers`](https://cmake.org/cmake/help/v3.23/command/target_precompile_headers.html)：预编译头
+- [`target_sources`](https://cmake.org/cmake/help/v3.23/command/target_sources.html)：源文件
+
++++
+
+## 继承关系
+
+假定`target_link_libraries(A PRIVATE B)`，即B依赖于A。
+
+- `target_include_directories(B PRIVATE DIR)`说明编译B时搜索包含路径DIR
+- `target_include_directories(B INTERFACE DIR)`说明编译A时搜索包含路径DIR
+- `target_include_directories(B PUBLIC DIR)`说明编译A和B时都搜索包含路径DIR
+- PUBLIC=INTERFACE+PUBLIC
+- `target_link_libraries(B INTERFACE C)`说明A也依赖C，C编译的INTERFACE要求也作用于A上。
+
++++
+
+## `target_link_libraries`的歧义
+
+`target_link_libraries`函数既用于声明依赖，也用于直接声明链接选项。
+
+- 当传入的参数是目标的名称时，说明依赖关系。
+- 当传入的目标不能匹配到目标的名称时，如直接传入路径或某不受CMake管理的库的名字时，参数会直接传到编译器作为待链接的库的名字。
+- 用`$<LINK_ONLY:...>`来避免声明依赖。
+
++++
+
+## 用继承管理编译要求
+
+- 项目内部，只要A依赖了一个库B，B的非私有编译要求自动作用到A上
+- 项目外部，B的编译要求可以到处到Config.cmake供其他人使用
+
+C项目终于有办法直接导出编译要求了！！！
+
+> 参考[CMake导出及安装包模板](https://melonedo.github.io/2022/02/10/CMake%E5%AF%BC%E5%87%BA%E5%8F%8A%E5%AE%89%E8%A3%85%E5%8C%85%E6%A8%A1%E6%9D%BF/)
+
++++
+
+## 用变量管理依赖
+
+但很多的库尚未被上一页感化，这些库还在使用着变量，他们会做这些事：
+
+- 把需要的编译要求，如包含路径、库的名字记录到一些变量中
+- 修改一些全局变量，如`CMAKE_CXX_FLAGS`，把一些要求硬编码到项目中。
+
+对于前者，可以像前面对OpenCV一样做一个INTERFACE库把变量形式的要求转化为依赖。
+
+对于后者，要注意这些变量通常只在对象初始化时生效，因此要尽可能早地用`find_package`加载依赖，避免出现问题。
+
+---
+
+## configure, export and build
+
+CMake项目整个编译的流程是分成明显的三步的
+
+1. 运行CMake DSL，得到一系列的目标和子项目
+2. 根据这些对象的属性，导出为第三者编译管理器的项目
+3. 第三者编译管理器编译代码
+
+第二步开始就不能运行CMake DSL了，但可以使用[generator expression](https://cmake.org/cmake/help/v3.23/manual/cmake-generator-expressions.7.html)
+
+第三步同样不能运行CMake DSL，因此不建议使用`file(GLOB)`之类的方法获取一个文件夹中所有的文件名，而是一个个列出。
+
++++
+
+### Configuration
+
+开发程序时会希望在调试和部署时使用不同的编译选项，如调试时需要带上符号文件，且少开优化，而部署时尽可能优化且尽可能减小文件体积。这种不同用途下需要的不同编译指令被抽象为configuration。
+
+- Ninja和VS原生支持configuration，这时候CMake会为同一个项目导出若干个不同的版本。`cmake --build build --config XXX`可以指定configuration。
+- make不支持configuration，必须在CMake调用时用`CMAKE_BUILD_TYPE`指定configuration。
+
+---
+
+# 谢谢大家！
+
+CMake官方文档：[cmake.org/cmake/help/latest/index.html](https://cmake.org/cmake/help/latest/index.html)
+
+						 </textarea>
+				</section>
+			</div>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script>
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				hash: true,
+                width: 1920,
+                height: 1080,
+                slideNumber: false,
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+			});
+		</script>
+	</body>
+</html>

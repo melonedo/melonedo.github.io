@@ -1,0 +1,521 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/black.css">
+
+		<!-- Theme used for syntax highlighted code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+
+		<style type="text/css">
+			.reveal .slides > section {
+				text-align:left;
+			}
+			#nocaps {
+				text-transform: none;
+			}
+			.reveal code {
+				font-family: 'Courier New', Courier, monospace;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h2 id="nocaps">Clang.jl</h2>
+					<h3>在Julia中轻松调用C接口</h3>
+					<hr>
+					<p>同济大学</p>
+					<p>曾富楠</p>
+					<p>melonedo.github.io</p>
+				</section>
+				<section data-markdown
+						 data-separator="^---$"
+						 data-separator-vertical="^\+{3}$">
+						 <textarea data-template>
+						 
+
+## 目录
+
+- Julia调用C接口
+- 自动生成c接口代码
+- Clang.jl 0.14的新特性
+
+---
+
+## C接口
+
+- C库通常包括`.h`头文件和`.c`/`.cpp`源文件
+- 头文件作为协议，原样分发
+- 源文件编译为（动态）链接库后分发
+
+
++++
+
+### jll包
+
+Julia将头文件和库包装在jll包中分发
+
+<img data-src="media/jll-directory-structure.png">
+
++++
+
+## 调用C接口
+
+Julia的`ccall`语句可以直接调用C接口，格式为
+```julia
+ccall((function_name, library), returntype, (argtype1, ...), argvalue1, ...)
+
+# 在Julia 1.5中引入
+@ccall library.function_name(argvalue1::argtype1, ...)::returntype
+```
+
+在Julia中调用C的动态库只需要根据函数的声明添加对应的接口函数，明确动态库的地址和函数类型。
+
++++
+
+## `ccall`接口函数
+
+如要调用的c函数声明为
+
+```c
+int add(int a, int b);
+```
+
+为这个C函数添加Julia接口
+
+```julia
+const libadd = "path/to/libadd.so"
+function add(a, b)
+    @ccall libadd.add(a::Cint, b::Cint)::Cint # Julia 1.5
+end
+```
+
++++
+
+## 调用接口
+
+函数`add`可以和原生的Julia函数同样调用
+
+```julia
+add(1,2) # => 3
+```
+
++++
+
+## 数据类型兼容
+
+若合理设计数据类型，则在Julia和C间传递数据时，不需要额外的转换函数。
+
+如C中的
+
+```c
+struct S {
+    int a; 
+    float b;
+};
+```
+
+对应Julia中的
+
+```julia
+struct S
+    a::Cint
+    b::Cfloat
+end
+```
+
+---
+
+## 自动生成Julia接口
+
+**Clang.jl**把C头文件中的函数和类型声明转换为Julia中对应的函数和类型。
+
+```julia [1-24|1-4|6-11|13-14|16-20|22-24]
+using Clang.Generators
+using Clp_jll
+
+cd(@__DIR__)
+
+# 编译器选项
+clp_include_dir = joinpath(Clp_jll.artifact_dir, "include") |> normpath
+coin_include_dir = joinpath(Clp_jll.CoinUtils_jll.artifact_dir, "include", "coin") |>normpath
+
+args = get_default_args()
+push!(args, "-I$clp_include_dir", "-I$coin_include_dir")
+
+# Clang.jl选项
+options = load_options(joinpath(@__DIR__, "generate.toml"))
+
+# 选取头文件
+headers = [
+    joinpath(clp_include_dir, "coin", "Clp_C_Interface.h")
+    joinpath(coin_include_dir, "Coin_C_defines.h")
+]
+
+# 生成接口
+ctx = create_context(headers, args, options)
+build!(ctx)
+```
+
+[Clp.jl/gen/generate.jl](https://github.com/jump-dev/Clp.jl/blob/a0f3228b6ec9540615308980e63c4e294082b567/gen/generate.jl)
+
++++
+
+## Clang.jl选项
+
+Clang.jl提供丰富的配置选项，满足各种场景的需求。
+
+```toml [1-18|18]
+[general]
+library_name = "libClp"
+output_file_path = "../lib/libClp.jl"
+use_julia_native_enum_type = false
+print_using_CEnum = false
+use_deterministic_symbol = true
+is_local_header_only = true
+smart_de_anonymize = true
+printer_blacklist = []
+extract_c_comment_style = "doxygen"
+
+[codegen]
+use_julia_bool = true
+always_NUL_terminated_string = true
+is_function_strictly_typed = false
+opaque_func_arg_as_PtrCvoid = false
+opaque_as_mutable_struct = true
+use_ccall_macro = false
+```
+
+[Clp.jl/gen/generate.toml](https://github.com/jump-dev/Clp.jl/blob/a0f3228b6ec9540615308980e63c4e294082b567/gen/generate.toml)
+
++++
+
+&lt;!-- .slide: data-transition="slide-in fade-out" --&gt;
+
+## Clang.jl选项
+
+```toml
+use_ccall_macro = false
+```
+
+```julia
+function Clp_resize(model, newNumberRows, newNumberColumns)
+    ccall((:Clp_resize, libClp), Cvoid, (Ptr{Clp_Simplex}, Cint, Cint), model, newNumberRows, newNumberColumns)
+end
+```
+
++++
+
+&lt;!-- .slide: data-transition="fade-in slide-out" --&gt;
+
+## Clang.jl选项
+
+```toml
+use_ccall_macro = true
+```
+
+```julia
+function Clp_resize(model, newNumberRows, newNumberColumns)
+    @ccall libClp.Clp_resize(model::Ptr{Clp_Simplex}, newNumberRows::Cint, newNumberColumns::Cint)::Cvoid
+end
+```
+
+---
+
+## Clang.jl 0.14的新特性
+
+- 可变参数函数
+- 位域
+- 提取doxygen注释
+
+感谢导师[Yupei Qi](https://github.com/Gnimuc)！
+
+---
+
+## 可变参数函数
+
+在Julia 1.5 添加了添加了可变参数调用的支持，比如最经典的`printf`函数
+
+```c
+int printf(const char *fmt, ...);
+```
+
+在Julia中可以用
+
+```julia
+julia> @ccall printf("%s, %d\n"::Cstring; "Hello"::Cstring, 123::Cint)::Cint;
+Hello, 123
+```
+
+的方法调用，只需在可变参数前用分号“`;`”标注。
+
++++
+
+## 可变参数函数接口
+
+为了直接调用`printf`函数，Clang.jl生成如下接口
+
+```julia
+@generated function printf(fmt, va_list...)
+    :(@ccall printf(fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cint)
+end
+```
+
+- Julia调用时类型不直接给出，必须自动推导参数类型（`to_c_type`）
+- `@ccall`的参数是常量，因此用生成函数在编译前指定类型
+
+实例：[melonedo/LibCURL.jl](https://github.com/melonedo/LibCURL.jl/blob/ff627c7e526d69f9347947e1195090e499fe885e/lib/aarch64-apple-darwin20.jl#L936-L938)
+
+---
+
+## 位域
+
+- 指C中长度不是8的整数倍的整数类型
+- Julia没有原生支持，需要转化为数组`NTuple{size, UInt8}`然后重载`getproperty`和`setproperty!`
+
+```c
+struct BitfieldStruct {
+    int d:3;
+    int e:4;
+    unsigned int f:2;
+};
+```
+
++++
+
+## 位域接口
+
+```julia [1-56|1-4|6-12|14-34|36-56]
+# 4字节长
+struct BitfieldStruct
+    data::NTuple{4, UInt8}
+end
+
+# 对应地址
+function Base.getproperty(x::Ptr{BitfieldStruct}, f::Symbol)
+    f === :d && return (Ptr{Cint}(x + 0), 0, 3)
+    f === :e && return (Ptr{Cint}(x + 0), 3, 4)
+    f === :f && return (Ptr{Cuint}(x + 0), 7, 2)
+    return getfield(x, f)
+end
+
+# 位预算获取对应数值
+function Base.getproperty(x::BitfieldStruct, f::Symbol)
+    r = Ref{BitfieldStruct2}(x)
+    ptr = Base.unsafe_convert(Ptr{BitfieldStruct2}, r)
+    fptr = getproperty(ptr, f)
+    begin
+        if fptr isa Ptr
+            return GC.@preserve(r, unsafe_load(fptr))
+        else
+            (baseptr, offset, width) = fptr
+            ty = eltype(baseptr)
+            baseptr32 = convert(Ptr{UInt32}, baseptr)
+            u64 = GC.@preserve(r, unsafe_load(baseptr32))
+            if offset + width > 32
+                u64 |= GC.@preserve(r, unsafe_load(baseptr32 + 4)) << 32
+            end
+            u64 = u64 >> offset & (1 << width - 1)
+            return u64 % ty
+        end
+    end
+end
+
+function Base.setproperty!(x::Ptr{BitfieldStruct}, f::Symbol, v)
+    fptr = getproperty(x, f)
+    if fptr isa Ptr
+        unsafe_store!(getproperty(x, f), v)
+    else
+        (baseptr, offset, width) = fptr
+        baseptr32 = convert(Ptr{UInt32}, baseptr)
+        u64 = unsafe_load(baseptr32)
+        straddle = offset + width > 32
+        if straddle
+            u64 |= unsafe_load(baseptr32 + 4) << 32
+        end
+        mask = 1 << width - 1
+        u64 &= ~(mask << offset)
+        u64 |= (unsigned(v) & mask) << offset
+        unsafe_store!(baseptr32, u64 & typemax(UInt32))
+        if straddle
+            unsafe_store!(baseptr32 + 4, u64 >> 32)
+        end
+    end
+end
+```
+
+---
+
+## 提取注释中的文档
+
+- C代码中的注释通常使用的doxygen格式可以转换为Julia注释中常用的markdown格式
+- 将类型中的成员的注释整合为表格
+- 寻找其他函数/类型的名字，并用超链接表示
+
++++
+
+## 函数文档示例
+
+### C
+```c
+/**
+ * \param Comment a \c CXComment_InlineCommand AST node.
+ *
+ * \param ArgIdx argument index (zero-based).
+ *
+ * \returns text of the specified argument.
+ */
+CINDEX_LINKAGE
+CXString clang_InlineCommandComment_getArgText(CXComment Comment,
+                                               unsigned ArgIdx);
+```
+
++++
+
+### Julia
+
+```julia
+"""
+    clang_BlockCommandComment_getArgText(Comment, ArgIdx)
+### Parameters
+* `Comment`: a `CXComment_BlockCommand` AST node.
+* `ArgIdx`: argument index (zero-based).
+### Returns
+text of the specified word-like argument.
+"""
+function clang_BlockCommandComment_getArgText(Comment, ArgIdx)
+    @ccall libclang.clang_BlockCommandComment_getArgText(Comment::CXComment, ArgIdx::Cuint)::CXString
+end
+```
+
++++
+
+### REPL
+
+```text
+help?> Clang.clang_BlockCommandComment_getArgText
+  clang_BlockCommandComment_getArgText(Comment, ArgIdx)
+
+  Parameters
+  ––––––––––––
+
+    •  Comment: a CXComment_BlockCommand AST node.
+
+    •  ArgIdx: argument index (zero-based).
+
+  Returns
+  –––––––––
+
+  text of the specified word-like argument.
+```
+
++++
+
+### Documenter
+
+<iframe src="media/doc.html" width=814 height=330>
+
++++
+
+## 类型文档示例
+
+### C
+
+```c
+/**
+ * Describes the kind of error that occurred (if any) in a call to
+ * \c clang_saveTranslationUnit().
+ */
+enum CXSaveError {
+  /**
+   * Indicates that no error occurred while saving a translation unit.
+   */
+  CXSaveError_None = 0,
+
+  /**
+   * Indicates that an unknown error occurred while attempting to save
+   * the file.
+   *
+   * This error typically indicates that file I/O failed when attempting to
+   * write the file.
+   */
+  CXSaveError_Unknown = 1,
+
+  /**
+   * Indicates that errors during translation prevented this attempt
+   * to save the translation unit.
+   *
+   * Errors that prevent the translation unit from being saved can be
+   * extracted using \c clang_getNumDiagnostics() and \c clang_getDiagnostic().
+   */
+  CXSaveError_TranslationErrors = 2,
+
+  /**
+   * Indicates that the translation unit to be saved was somehow
+   * invalid (e.g., NULL).
+   */
+  CXSaveError_InvalidTU = 3
+};
+```
+
++++
+
+### Julia
+
+```julia
+"""
+    CXSaveError
+Describes the kind of error that occurred (if any) in a call to [`clang_saveTranslationUnit`](@ref)(). 
+| Enumerator                      | Note                                                                                                                                                                                                                                                       |
+| :------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CXSaveError\\_None              | Indicates that no error occurred while saving a translation unit.                                                                                                                                                                                          |
+| CXSaveError\\_Unknown           | Indicates that an unknown error occurred while attempting to save the file.  This error typically indicates that file I/O failed when attempting to write the file.                                                                                        |
+| CXSaveError\\_TranslationErrors | Indicates that errors during translation prevented this attempt to save the translation unit.  Errors that prevent the translation unit from being saved can be extracted using [`clang_getNumDiagnostics`](@ref)() and [`clang_getDiagnostic`](@ref)().   |
+| CXSaveError\\_InvalidTU         | Indicates that the translation unit to be saved was somehow invalid (e.g., NULL).                                                                                                                                                                          |
+"""
+@cenum CXSaveError::UInt32 begin
+    CXSaveError_None = 0
+    CXSaveError_Unknown = 1
+    CXSaveError_TranslationErrors = 2
+    CXSaveError_InvalidTU = 3
+end
+```
+
++++
+
+### Documenter
+
+<iframe src="media/doc2.html" width=814 height=580>
+
+---
+
+# 感谢观看！
+						 </textarea>
+				</section>
+			</div>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script>
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				hash: true,
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+			});
+		</script>
+	</body>
+</html>
