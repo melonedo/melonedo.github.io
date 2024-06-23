@@ -57,13 +57,14 @@ PING 223.5.5.5 (223.5.5.5): 56 data bytes
 ping: sendto: Network unreachable
 ```
 
-这是因为 Milk-V 开发板开启了 DHCP 服务器，默认没有配置网关。实际上这里的默认网关是他自己，但 Milk-V 没有联网的能力。我们手动将主机的地址设为网关。
+这个是因为 Milk-V 开发板开启了 DHCP 服务器，默认没有配置网关。实际上这里的默认网关是他自己，但 Milk-V 没有联网的能力。我们手动将主机的地址设为网关。
 
 ```shell
 route add default gw 192.168.42.98 usb0
+# 或者 ip route add default via 192.168.42.98 dev usb0
 ```
 
-这样，再次访问，可以发现不再立刻报错而是一直超时：
+再次使用`route`（或者`ip route`）命令可以查看当前的路由表确认结果。再次访问，可以发现不再立刻报错而是一直超时：
 
 ```shell
 [root@milkv-duo]~# ping 223.5.5.5
@@ -118,3 +119,6 @@ PING 223.5.5.5 (223.5.5.5): 56 data bytes
 
 最后，要想访问域名，还需要配置 DNS。这步比较简单，直接在 /etc/resolv.conf 里添加`nameserver 223.5.5.5`即可。
 
+```shell
+echo 'nameserver 223.5.5.5' > /etc/resolv.conf
+```
