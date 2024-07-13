@@ -11,7 +11,7 @@ render_with_liquid: false
 
 ## 关于代理
 
-Docker 中代理分为两类，一类是 Docker 容器里运行的系统的代理，一类是 Dockerd 本身所使用的代理。这里配置的是 Dockerd 本身的代理。
+Docker 中代理分为两类，一类是 Docker 容器里运行的系统的代理，一类是 Dockerd 本身所使用的代理。这里配置的是 Dockerd 本身的代理。配置容器里的代理参考<https://docs.docker.com/network/proxy/#configure-the-docker-client>即可。
 
 ## 配置方法
 
@@ -23,9 +23,9 @@ Dockerd 设置代理有三种设置方法：[Configure the daemon to use a proxy
 
 但是，由于大部分人的 dockerd 应该是通过 systemd 管理的，因此实际上管理的方法有两种：
 
-- 修改/etc/docker/daemon.json。
+### 修改 Dockerd 配置
 
-注意这里的`https-proxy`一般和`http-proxy`一致，而 Docker 官方的示例里前缀是`https://`，不适合大多数本地的代理软件。
+修改 /etc/docker/daemon.json，注意这里的`https-proxy`一般和`http-proxy`一致，而 Docker 官方的示例里前缀是`https://`，不适合大多数本地的代理软件。
 
 ```json
 {
@@ -39,6 +39,7 @@ Dockerd 设置代理有三种设置方法：[Configure the daemon to use a proxy
 
 修改完后需要使用`sudo systemctl restart docker`重启 dockerd。
 
+### 修改 systemd 配置
 - 新建 systemd 服务文件`/etc/systemd/system/docker.service.d/http-proxy.conf`
 
 ```
