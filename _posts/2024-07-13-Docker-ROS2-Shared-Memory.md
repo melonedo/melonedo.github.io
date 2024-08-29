@@ -117,3 +117,10 @@ docker compose run --rm -it ros2 ros2 topic echo /test
 docker compose run --rm -it ros2 ros2 topic pub /test std_msgs/msg/String '{data: "hello"}'
 ros2 topic echo /test
 ```
+
+## 其他方法
+
+基于命名空间似乎也可以考虑：
+
+<https://gist.github.com/heyfluke/b8372df866ec2584f9a51ca7d7fe9ebb>
+<https://www.jujens.eu/posts/en/2017/Jul/02/docker-userns-remap/>

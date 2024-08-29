@@ -13,6 +13,26 @@ render_with_liquid: false
 
 Docker 中代理分为两类，一类是 Docker 容器里运行的系统的代理，一类是 Dockerd 本身所使用的代理。这里配置的是 Dockerd 本身的代理。配置容器里的代理参考<https://docs.docker.com/network/proxy/#configure-the-docker-client>即可。
 
+<details>
+<summary><a href="https://github.com/docker/cli/issues/4501#issuecomment-1827767441">实际上有四个场景</a></summary>
+@RainM I can understand your frustration.<br/>
+<br/>
+I've been fighting various incarnations of corporate proxies for two decades now and have learnt a thing or two the hard way. One of the first things you have to consider is what component lives where and what does it need to access when (and in what context). Once you got that sorted out, the various settings actually make sense, believe it or not.<br/>
+<br/>
+First the docker daemon and client do not necessarily live on the same computer. They often do, but they don't have to. That means that the client may need proxy settings to communicate with the daemon. The daemon may in turn need proxy settings to pull images from any of the various container image registries. These settings are not necessarily the same as those needed by the client to contact the daemon.<br/>
+<br/>
+The docker build invocation contacts the daemon to make it pull a base image (if not already cached or the cache is explicitly ignored). That same build may need to fetch packages from the distribution, an NPM registry or pull code from a git repository somewhere. That may require yet another set of proxy settings. These proxy settings should not remain in the image being built because they are build environment dependent. That is, embedding the proxy settings I need at work in an image is not going to work for you when you pull that image. Worse, they may include authentication credentials 😱
+The --build-arg options keep https_proxy, http_proxy and no_proxy out of the image.
+<br/>
+Finally, there is a set of proxy settings that the image may need at run-time. For example, an image that polls a git repository for new commits in a repository on the other side of the proxy. Again, your proxy requirements aren't the same as mine so these settings should not be baked into the image (in the general case).<br/>
+<br/>
+In a worst case scenario, these four (not three 😓) use cases may all need different settings. In a security conscious setup, you may even need to be able to prevent some of them to default to the settings for another use case, so specifying each set explicitly, though annoying, makes sense.<br/>
+<br/>
+All that said, I personally really would like it if they all defaulted to using a single set (as long as I can override that when needed). After all, most of the time you're dealing with the daemon and client running on the same machine where you build and run your images during development.<br/>
+<br/>
+Hope this helps.
+</details>
+
 ## 配置方法
 
 Dockerd 设置代理有三种设置方法：[Configure the daemon to use a proxy](https://docs.docker.com/config/daemon/proxy/)

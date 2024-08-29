@@ -93,11 +93,26 @@ target_link_libraries(test PRIVATE enable_utf8)
 # 注：INTERFACE表示被连接到的目标使用，PRIVATE表示库自己使用，PUBLIC为前两者并集，即自己和被连接到的项目都可以。
 ```
 
-基本上就是语言里加个CUDA就解决了。如果用VS，需要借助`nvcc`向msvc传选项`/utf-8`来避免编码问题，添加的方法来自[passing flags to nvcc via CMake - #2，来自 qiyupei - CUDA Programming and Performance - NVIDIA Developer Forums](https://forums.developer.nvidia.com/t/passing-flags-to-nvcc-via-cmake/75768/2)。（居然是OSPP项目导师，巧了）
+基本上就是语言里加个CUDA就解决了，其他的部分是在解决编码的问题。如果用VS，需要借助`nvcc`向msvc传选项`/utf-8`来避免编码问题，添加的方法来自[passing flags to nvcc via CMake - #2，来自 qiyupei - CUDA Programming and Performance - NVIDIA Developer Forums](https://forums.developer.nvidia.com/t/passing-flags-to-nvcc-via-cmake/75768/2)。（居然是OSPP项目导师，巧了）
 
 显卡架构分为虚架构和实架构，虚架构即使用的软件API版本，实架构代表硬件API版本，当虚版本低于当前电脑的硬件时CUDA将JIT生成需要的代码。可以参考[StackOverflow问题differences between virtual and real architecture of cuda](https://stackoverflow.com/questions/14779523/differences-between-virtual-and-real-architecture-of-cuda)、[NVCC手册关于GPU编译的部分](https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#gpu-compilation)。关于自己的显卡是什么型号的可以参考[维基：CUDA#GPUs supported](https://en.wikipedia.org/wiki/CUDA#GPUs_supported)。
 
 另有[`FindCUDAToolkit`](https://cmake.org/cmake/help/latest/module/FindCUDAToolkit.html#findcudatoolkit)或者`FindCUDA`方法，~~不太清楚~~ 在新版的CMake更新支持CUDA语言后不建议使用。
+
+### [`FindCUDAToolkit`](https://cmake.org/cmake/help/latest/module/FindCUDAToolkit.html#findcudatoolkit)
+
+上述配置用于编译 *.cu 文件，而如果要在 *.cpp 文件中使用，需要链接到 cudart 或是其他的库，如nvjpeg：
+
+```cmake
+find_package(CUDAToolkit REQUIRED)
+target_link_libraries(main PRIVATE CUDA::cudart CUDA::nvjpeg)
+```
+
+具体要链接什么库参考 FindCUDAToolkit 文档。如果 nvcc 没有装在系统目录，可以使用CUDAToolkit_ROOT
+
+### [`FindCUDA`](https://cmake.org/cmake/help/latest/module/FindCUDA.html)
+
+OpenCV 仍然使用 FindCUDA 设置 CUDA 相关内容。要注意的是，FindCUDA 使用`-DCUDA_TOOLKIT_ROOT_DIR=xxx`设置自定义路径，而 FindCUDAToolkit 虽然在文档里说使用`-DCUDAToolkit_ROOT=xxx`设置，实际上需要使用`-DCMAKE_CUDA_COMPILER=xxx/bin/nvcc`，并且两者的默认搜索规则不同。两者如果不同时可能会产生如 stack smashing detected 的错误，说明编译和链接时使用的库不同。可以在 CMakeCache.txt 里搜索 libcudart 相关内容确定搜索到的是同一个库。
 
 ## 运行
 
