@@ -1,7 +1,7 @@
 ---
 layout: post
 title: ROS 2 没有 printf 输出
-date: 2024-08-29 00:015:38 +0800
+date: 2024-08-29 00:15:38 +0800
 tags: 
 - 编程
 render_with_liquid: false
