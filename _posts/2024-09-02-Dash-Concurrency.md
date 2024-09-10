@@ -20,7 +20,7 @@ echo "All subprocesses exited"
 
 注意为了在收到 SIGINT 后等待子进程退出，在开始时额外使用`trap wait INT`指令，即脚本本身在收到 SIGINT 后不退出，等待子进程结束。也可以写`trap '' INT`，直接忽略 SIGINT，等待各进程自行退出。
 
-注意 SIGINT 默认发给整个前台进程组，即包括子进程和主进程，因此无需主动使用`kill -INT $pids`发送 SIGINT。如果使用，还可能因为进程退出太快产生警告。
+注意 SIGINT 默认发给整个前台进程组，即包括子进程和主进程，因此无需主动使用`kill -INT $pids`发送 SIGINT。如果使用，还可能因为进程退出太快产生警告。参考 [Behavior of SIGINT with Bash](https://superuser.com/a/1830133)。
 
 如果需要具体子进程的 PID，则可以用下列模板
 
