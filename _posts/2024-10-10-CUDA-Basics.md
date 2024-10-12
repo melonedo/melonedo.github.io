@@ -1,6 +1,6 @@
 ---
 layout: post
-title: CUDA基础
+title: CUDA 基础
 date: 2024-10-10 22:47:00 +0800
 tags: 
 - 编程
@@ -134,3 +134,7 @@ __global__ void vectorAdd(const float *A, const float *B, float *C, int numEleme
 而共享内存是一个 Block 中共享的资源，相比显存更加灵活，组成成 32-way associative 的缓存的形式。共享内存根据低位分成 32 组（Bank），一次共享内存操作中，分别访问 32 组中的**一个**位置（4字节），不要求连续。这意味着，如果一个 Warp 向共享内存的操作如果**去掉重复**的部分，分别属于不同的 Bank，则操作可以一次完成。如果有 n 个操作属于同一个 Bank，即产生 Bank Conflict，则需要分成多次访问。
 
 更多细节参考：[CUDA C++ Programming Guide: 5.3.2. Device Memory Accesses](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#device-memory-accesses)和 [Compute Capability 5.x 的共享内存模型](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#shared-memory-5-x)。
+
+## 调试
+
+如果显存访问越界，可以使用`compute-sanitizer`运行程序，会在出错时提供说明。更细致的调试由`cudagdb`提供，对应的 [VSCode 插件](https://docs.nvidia.com/nsight-visual-studio-code-edition/cuda-debugger/index.html)。
