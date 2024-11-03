@@ -2,7 +2,9 @@
 layout: post
 title: CMake中手动指定Python路径
 date: 2024-05-11 21:01:00 +0800
-tags: 编程
+tags: 
+- 编程
+- CMake
 render_with_liquid: false
 ---
 

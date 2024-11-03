@@ -4,6 +4,7 @@ title: IPv6 网络调试记录
 date: 2024-07-26 00:02:00 +0800
 tags: 
 - 编程
+- 网络
 render_with_liquid: false
 ---
 

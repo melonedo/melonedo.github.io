@@ -4,6 +4,7 @@ title: ROS 2 没有 printf 输出
 date: 2024-08-29 15:38:00 +0800
 tags: 
 - 编程
+- ROS
 render_with_liquid: false
 ---
 

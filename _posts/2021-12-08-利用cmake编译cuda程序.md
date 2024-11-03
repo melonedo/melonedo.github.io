@@ -5,6 +5,7 @@ date: 2021-12-08 20:03:42 +0800
 tags: 
 - 编程
 - CMake
+- CUDA
 ---
 
 代码：[melonedo/cmake-lecture/CUDA](https://github.com/melonedo/cmake-lecture/tree/main/cuda)

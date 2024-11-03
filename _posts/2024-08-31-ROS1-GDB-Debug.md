@@ -4,6 +4,7 @@ title: ROS 1 GDB 调试方法
 date: 2024-08-31 13:18:00 +0800
 tags: 
 - 编程
+- ROS
 render_with_liquid: false
 ---
 

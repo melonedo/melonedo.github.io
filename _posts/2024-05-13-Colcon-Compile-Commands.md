@@ -10,6 +10,7 @@ render_with_liquid: false
 
 CMake 中，可以使用 [CMAKE_EXPORT_COMPILE_COMMANDS](https://cmake.org/cmake/help/latest/variable/CMAKE_EXPORT_COMPILE_COMMANDS.html) 这个 CMake 变量或对应的环境变量来生成 `compile_commands.json`，即执行 `cmake` 命令时添加选项 `-DCMAKE_EXPORT_COMPILE_COMMANDS=ON`，或是添加环境变量 `export CMAKE_EXPORT_COMPILE_COMMANDS=ON`。
 
+在 ROS1 中，通过修改`CMakeCache.txt`即可导出`compile_commands.json`。
 但 ROS2 的 colcon 会默认设置 CMake 变量 `CMAKE_EXPORT_COMPILE_COMMANDS` 为不导出 `compile_commands.json`，无法使用环境变量的方法配置，必须添加参数，如
 
 ```shell

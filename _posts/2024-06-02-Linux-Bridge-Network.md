@@ -4,6 +4,7 @@ title: Linux 下给 Milk-V 共享网络
 date: 2024-06-02 21:23:00 +0800
 tags: 
 - 编程
+- 网络
 render_with_liquid: false
 ---
 
