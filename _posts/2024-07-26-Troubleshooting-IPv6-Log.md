@@ -81,5 +81,6 @@ ip route get 2408:8720:806:300:70::77
 - 目标 MAC：由于存在交换机，即使是以太网，同一个接口内也可能有多个，网卡内部用于区分各个设备的地址
 - 源 MAC /接口：使用的网卡接口，同时也自然指定了所使用的 MAC
 
-https://www.kc8apf.net/2019/03/renewing-dhcp-while-keeping-a-networkmanager-connection-up/
-https://networkmanager.pages.freedesktop.org/NetworkManager/NetworkManager/nm-settings-nmcli.html
+<https://www.kc8apf.net/2019/03/renewing-dhcp-while-keeping-a-networkmanager-connection-up/>
+
+<https://networkmanager.pages.freedesktop.org/NetworkManager/NetworkManager/nm-settings-nmcli.html>
