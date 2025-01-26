@@ -1,6 +1,6 @@
 ---
 layout: post
-title: ROS 1 GDB 调试方法
+title: ROS 1 VSCode 调试方法
 date: 2024-08-31 13:18:00 +0800
 tags: 
 - 编程
@@ -22,7 +22,7 @@ ROS 1 的代码中，如果 c++ 部分崩溃，直接 gdb 并不容易：
 首先把`launch-prefix`改为`gdbserver localhost:10000`。
 
 然后在 .vscode/launch.json 添加调试配置
-```json
+```json5
 {
     // Use IntelliSense to learn about possible attributes.
     // Hover to view descriptions of existing attributes.
@@ -46,6 +46,36 @@ ROS 1 的代码中，如果 c++ 部分崩溃，直接 gdb 并不容易：
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true,
+                }
+            ]
+        }
+    ]
+}
+```
+
+## Python
+
+Python 代码要调试的话也是类似，添加一个`python3 -m debugpy --listen 5678`的前缀即可（需要安装 debugpy）。在 VSCode 这边，.vscode/launch.json 的内容是
+```json5
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Remote Attach",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5678
+            },
+            "justMyCode": false,
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}",
+                    "remoteRoot": "."
                 }
             ]
         }
