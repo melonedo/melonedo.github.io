@@ -24,7 +24,7 @@ AVX2 比 SSE 略新，一般需要指定架构才编译，不过实际上在大�
 - [Awesome-SIMD](https://github.com/awesome-simd/awesome-simd)。
 - 一个讨论微架构的博客：[David Huang's Blog](https://blog.hjc.im/)。
 - 一些 Hacker News 讨论：<https://news.ycombinator.com/item?id=41182395>、<https://news.ycombinator.com/item?id=30846226>、<https://news.ycombinator.com/item?id=30845228>。
-- 一些教程：[Crunching Numbers with AVX and AVX2](https://www.codeproject.com/articles/874396/crunching-numbers-with-avx-and-avx)、[SIMD Parallelism - Algorithmica](https://en.algorithmica.org/hpc/simd/)。
+- 一些教程：[Crunching Numbers with AVX and AVX2](https://www.codeproject.com/articles/874396/crunching-numbers-with-avx-and-avx)、[SIMD Parallelism - Algorithmica](https://en.algorithmica.org/hpc/simd/)、[TiFlash 面向编译器的自动向量化加速](https://tidb.net/blog/1886d9cd)。
 - Dieshot：B 站的[万扯淡](https://space.bilibili.com/374034429)拍了非常非常多 dieshot，而 [LITTERTREE66](https://space.bilibili.com/381535123) 对其中不少 dieshot 做了注释。
 
 ## NEON
