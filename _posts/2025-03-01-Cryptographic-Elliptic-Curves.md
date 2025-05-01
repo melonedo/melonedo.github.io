@@ -37,7 +37,7 @@ $$
 
 ## 命名曲线
 
-SECG 命名了大部分常见的 Weierstrass 形式的曲线，命名为[`sec[p/t][xxx][r/k]N`](https://www.secg.org/SEC2-Ver-1.0.pdf)，其中 sec 是 Standards for Efficient Cryptology 的缩写，p/t 表示质数域/二进制拓展域，xxx 是曲线的位数，r/k表示随机参数/**Koblitz 曲线**。Koblitz 曲线参数是比较简洁的小整数，并且具有利于计算的特性。
+SECG 命名了大部分常见的 Weierstrass 形式的曲线，命名为[`sec[p/t][xxx][r/k]N`](https://www.secg.org/SEC2-Ver-1.0.pdf)，其中 sec 是 Standards for Efficient Cryptology 的缩写，p/t 表示质数域/二进制拓展域，xxx 是曲线的位数，r/k表示随机参数/**Koblitz 曲线**。Koblitz 曲线参数是比较简洁的小整数，并且具有利于计算的特性。除此之外，很多的标准组织（ANSI、NIST）都给椭圆曲线起了名，当然只是规定了代号，不代表就是这个机构确定的参数。各种命名的对照可以参考：[各种 ecc 曲线](https://jia.je/crypto/2020/05/21/ecc-curves/)。
 
 NIST 同样命名了大量的曲线，尤其是 P-256（secp256r1）是最常用的椭圆曲线，但因为随机数选取不透明而且可能有后门（[Dual_EC_DRBG](https://en.wikipedia.org/wiki/Dual_EC_DRBG)），现在更推荐用其他的曲线。
 
