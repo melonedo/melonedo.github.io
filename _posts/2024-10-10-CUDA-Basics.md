@@ -14,11 +14,15 @@ CUDA 是目前大规模并行加速唯一的通用平台，要想大规模地加
 - [CUDA Runtime API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html)：CUDA 运行时（cuda_runtime.h）中函数的文档。
 - [CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html)：CUDA（.cu）语言及编程环境相关的官方参考，内容非常全面。
 - [CUDA C++ Best Practices Guide](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html)：CUDA 编程的最佳实践，主要是纲领型的内容，细节还是参考上面这个。
-- [Nsight Systems](https://docs.nvidia.com/nsight-systems/index.html) 和 [Nsight Compute](https://docs.nvidia.com/nsight-compute/index.html)：CUDA profiling 的工具，前者是针对整个程序，可以了解包括 CPU 占用 GPU 计算占用率、内存传输占用率等，后者针对单个 CUDA 核，分析具体的信息。以前很多教程用的是 [Visual Profiler 和 nvprof](https://docs.nvidia.com/cuda/profiler-users-guide/index.html)，现在似乎官方已经不推荐。
+- [Nsight Systems](https://docs.nvidia.com/nsight-systems/index.html) 和 [Nsight Compute](https://docs.nvidia.com/nsight-compute/index.html)：CUDA profiling 的工具，前者是针对整个程序，可以了解包括 CPU 占用 GPU 计算占用率、内存传输占用率等，后者针对单个 CUDA 核，分析具体的信息。以前很多教程用的是 [Visual Profiler 和 nvprof](https://docs.nvidia.com/cuda/profiler-users-guide/index.html)，现在似乎官方已经不推荐。CUDA 程序出错时，可以考虑 [compute-sanitizer](https://docs.nvidia.com/compute-sanitizer/ComputeSanitizer/index.html) 检查是否有越界等问题。
+- [NVIDIA On-Demand](https://www.nvidia.cn/on-demand/)有一系列英伟达的录屏。
+- *Computer Architecture: A Quantitative Approach* 虽然是通用的体系结构书籍，但是里面对于 SIMT 的讲解精炼又到位，适合于快速了解。
+- *Programming Massively Parallel Processors* 和 *General-Purpose Graphics Processor Architectures* 是两本具体介绍 GPGPU 的书籍，非常有名，不过似乎（后者）有些年代了。
+
 
 # 命名
 
-CUDA 文档阅读中，一般不会直呼产品的名称，而是只提架构名以及 Compute Capibility，相当于版本代号及版本号。在 [CUDA GPUs - Compute Capability](https://developer.nvidia.com/cuda-gpus) 可以查到各个型号对应的称呼。近几年的消费级产品的对应关系大致如下：
+CUDA 文档阅读中，一般不会直呼产品的名称，而是只提架构名以及 Compute Capibility，相当于版本代号及版本号。在 [CUDA GPUs - Compute Capability](https://developer.nvidia.com/cuda-gpus) 或者[CUDA 的维基百科](https://en.wikipedia.org/wiki/CUDA#GPUs_supported)可以查到各个型号对应的称呼。近几年的消费级产品的对应关系大致如下：
 
 |       产品 | 架构         | Compute Capability |
 |-----------:|--------------|--------------------|

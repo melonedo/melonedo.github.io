@@ -19,7 +19,7 @@ ROS 1 的代码中，如果 c++ 部分崩溃，直接 gdb 并不容易：
 
 如果直接在命令行调试比较难受，则可以用 GDB Server 远程（参考 [How to attach to remote gdb with vscode?](https://stackoverflow.com/questions/53519668/how-to-attach-to-remote-gdb-with-vscode)）
 
-首先把`launch-prefix`改为`gdbserver localhost:10000`。
+首先把`launch-prefix`改为`launch-prefix="gdbserver localhost:10000"`。
 
 然后在 .vscode/launch.json 添加调试配置
 ```json5
