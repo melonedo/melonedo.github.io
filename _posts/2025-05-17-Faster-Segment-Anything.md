@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Segment Anything 平替
-date: 2025-05-10 17:15:00 +0800
+date: 2025-05-17 19:00:00 +0800
 tags:
 - AI
 render_with_liquid: false
@@ -15,11 +15,11 @@ render_with_liquid: false
 
 这两个都是直接缩小 ViT 的尺寸做出来的，前者发得早，知名度高，后者是 Meta 自己出的，方法和 MobileSAM 差不多。注意 EfficientSAM 引用了 [TinyViT](https://arxiv.org/abs/2207.10666)，但实际上用的是 [DeiT](https://arxiv.org/abs/2012.12877) 的模型参数，前者有一堆省计算量的小技巧。
 
-## [EfficientVIT-SAM](https://arxiv.org/abs/2402.05008)
+## [EfficientViT-SAM](https://arxiv.org/abs/2402.05008)
 
 直接把注意力换成 ReLU 注意力，全连接换成卷积，是一种线性注意力。不过实际上 Token 数量不多，应该也省不了多少计算量，不过既然是一种注意力，根据 [MetaFormer 理论](https://arxiv.org/abs/2111.11418)，只要能做 Token 交互的算子都能用，问题应该不大。
 
-EfficientVIT 有重名，这里用的是 MIT Han Lab 的 [ReLU 注意力版本](https://arxiv.org/abs/2205.14756)，不是[级联注意力的版本](https://arxiv.org/abs/2205.14756)。
+EfficientVIT 有重名，这里用的是 MIT Han Lab 的 [ReLU 注意力版本](https://arxiv.org/abs/2205.14756)，不是[级联注意力的版本](https://arxiv.org/abs/2305.07027)。级联注意力把多个头并行改为了前一个头的输出加到下一个头的输入上，节省了内存，相当于展成了超深的神经网络，对计算应该非常不友好。
 
 ## [RepViT-SAM](https://arxiv.org/abs/2312.05760) 和 [EdgeSAM](https://arxiv.org/abs/2312.06660)
 
