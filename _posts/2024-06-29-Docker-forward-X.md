@@ -33,3 +33,5 @@ docker run --rm --net=host -e DISPLAY=$DISPLAY -v $HOME/.Xauthority:/root/.Xauth
 sudo xhost +local:docker
 docker run --rm -v /tmp/.X11-unix:/tmp/.X11-unix --env DISPLAY=$DISPLAY --net=host -v "$HOME/.Xauthority:/root/.Xauthority:rw"  -v $PWD:/scripts gns3/xeyes
 ```
+
+另外，在 ROS 的教程里对此有很详细的介绍：<http://wiki.ros.org/docker/Tutorials>。
