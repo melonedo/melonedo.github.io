@@ -78,6 +78,8 @@ CUTLASS 的`swizzle<3,0,3>`布局，同样可以在按行和列访问时无 bank
 
 最后，顺便介绍一下 CUTLASS 中`Swizzle`的参数吧，官方文档里是这么写的：
 
+**这部分内容有误，请查看新文章[程序计算 Swizzle 布局](/_posts/2025-08-20-Programatic-Swizzle-Layout.md)**
+
 ```c++
 // A generic Swizzle functor
 /* 0bxxxxxxxxxxxxxxxYYYxxxxxxxZZZxxxx
