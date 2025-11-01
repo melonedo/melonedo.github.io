@@ -126,7 +126,7 @@ mbarrier.try_wait p, [bar], phase;
 
 在 Hopper 中，`mbarrier`系列 PTX 用到的 SASS 指令有专属的 SYNCS 前缀，意为[同步单元](https://docs.nvidia.com/cuda/cuda-binary-utilities/index.html#hopper-hopper-instruction-set-table)，其中 S 表示共享内存。图中虚线框中的就是这个同步单元。
 
-![US20230289242A1 Fig.7](/assets/imgs/US20230289242A1-20230914-D00012.png)
+![US20230289242A1 Fig. 7](/assets/imgs/US20230289242A1-20230914-D00012.png)
 
 这个同步单元在实现屏障方面起到至关重要的作用。
 
